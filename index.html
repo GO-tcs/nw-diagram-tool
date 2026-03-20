@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ネットワーク構成図</title>
+<style>
+:root{--bg:#f1f3f6;--sur:#fff;--sur2:#f5f6f8;--bd:#e2e5ea;--bd2:#c5cad4;--tx:#1a1d23;--tx2:#6b7280;--tx3:#a0a8b5;--ac:#3b6fe8;--acb:#eaf0fd;--red:#e84040;--grn:#18a06b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI','Hiragino Sans','Yu Gothic UI',sans-serif;background:var(--bg);color:var(--tx);height:100vh;display:flex;flex-direction:column;overflow:hidden;font-size:13px}
+#tb{display:flex;align-items:center;gap:5px;padding:7px 12px;background:var(--sur);border-bottom:1px solid var(--bd);flex-shrink:0}
+#tb h1{font-size:14px;font-weight:700;margin-right:4px;white-space:nowrap}
+.sep{width:1px;height:20px;background:var(--bd);margin:0 2px;flex-shrink:0}
+.btn{display:flex;align-items:center;gap:4px;padding:5px 9px;background:transparent;border:1px solid var(--bd);border-radius:8px;color:var(--tx2);cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.btn:hover{background:var(--sur2);color:var(--tx);border-color:var(--bd2)}
+.btn.on{background:var(--acb);color:var(--ac);border-color:#bad0f8}
+.btn.red:hover{background:#fff0f0;color:var(--red);border-color:#ffb3b3}
+#zdsp{font-size:12px;color:var(--tx2);min-width:36px;text-align:center}
+#wrap{display:flex;flex:1;overflow:hidden}
+#sb{width:192px;flex-shrink:0;background:var(--sur);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow-y:auto}
+.ss{padding:10px;border-bottom:1px solid var(--bd)}
+.sl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
+.ng{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.ni{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 3px;border:1px solid var(--bd);border-radius:8px;cursor:grab;background:var(--sur2);user-select:none;font-size:10px;color:var(--tx2);text-align:center;line-height:1.3;transition:all .15s}
+.ni:hover{border-color:var(--ac);color:var(--ac);background:var(--acb)}
+.ico{font-size:18px;line-height:1;pointer-events:none}
+#aitx{width:100%;height:64px;padding:6px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--sur2);color:var(--tx);font-size:11px;font-family:inherit;resize:none;outline:none;line-height:1.5}
+#aitx:focus{border-color:var(--ac)}
+#aitx::placeholder{color:var(--tx3);font-size:10px}
+.chips{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
+.chip{font-size:10px;padding:2px 7px;border:1px solid var(--bd);border-radius:20px;cursor:pointer;color:var(--tx2);background:var(--sur2);transition:all .12s}
+.chip:hover{border-color:var(--ac);color:var(--ac);background:var(--acb)}
+#bgen{width:100%;margin-top:6px;padding:6px;background:var(--ac);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:500;transition:background .15s}
+#bgen:hover{background:#2655c8}
+#bgen:disabled{background:var(--bd2);cursor:not-allowed}
+#ast{font-size:10px;color:var(--tx3);margin-top:4px;min-height:14px}
+#ast.ok{color:var(--grn)}#ast.err{color:var(--red)}#ast.ld{color:var(--ac)}
+#saas-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+#badd{background:none;border:none;cursor:pointer;color:var(--ac);font-size:20px;line-height:1;padding:0}
+#saas-emp{font-size:10px;color:var(--tx3);text-align:center;padding:4px 0}
+#cw{flex:1;overflow:hidden;position:relative}
+#grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(var(--bd) 1px,transparent 1px),linear-gradient(90deg,var(--bd) 1px,transparent 1px);background-size:40px 40px;opacity:.45}
+#vp{position:absolute;top:0;left:0;transform-origin:0 0}
+svg#dg{overflow:visible}
+.nn{cursor:move;user-select:none}
+.nb{transition:filter .15s}
+.nn:hover .nb{filter:drop-shadow(0 3px 10px rgba(0,0,0,.18))}
+.nn.sel .nb{filter:drop-shadow(0 0 0 2.5px #3b6fe8) drop-shadow(0 2px 8px rgba(0,0,0,.15))}
+.nl{font-size:11px;fill:#1a1d23;text-anchor:middle;dominant-baseline:hanging;pointer-events:none;font-family:'Segoe UI','Hiragino Sans','Yu Gothic UI',sans-serif}
+.nip{font-size:9px;fill:#a0a8b5;text-anchor:middle;dominant-baseline:hanging;pointer-events:none;font-family:monospace}
+.pt{cursor:crosshair;opacity:0;transition:opacity .15s}
+.nn:hover .pt{opacity:1}
+.eg{stroke:#c5cad4;stroke-width:2;fill:none;cursor:pointer;transition:stroke .15s}
+.eg:hover,.eg.sel{stroke:var(--ac)}
+.eg.wifi{stroke:#7c3aed;stroke-dasharray:6 4}
+.eg.vpn{stroke:#7c3aed;stroke-dasharray:10 4 2 4}
+.eg.wan{stroke:#d97706;stroke-width:2.5}
+.eg.internet{stroke:#1a73b8;stroke-dasharray:5 3}
+.egl{font-size:10px;fill:#6b7280;text-anchor:middle;dominant-baseline:central;pointer-events:none;font-family:sans-serif}
+#props{width:204px;flex-shrink:0;background:var(--sur);border-left:1px solid var(--bd);display:flex;flex-direction:column;overflow-y:auto}
+.ph{padding:10px 12px 8px;border-bottom:1px solid var(--bd);font-size:12px;font-weight:600;color:var(--tx2)}
+.pg{padding:8px 12px;border-bottom:1px solid var(--bd)}
+.pr{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.pr:last-child{margin-bottom:0}
+.plb{font-size:11px;color:var(--tx2);font-weight:500}
+.pi{padding:5px 8px;border:1px solid var(--bd);border-radius:6px;background:var(--sur2);color:var(--tx);font-size:12px;font-family:inherit;outline:none}
+.pi:focus{border-color:var(--ac)}
+.swp{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.sw{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .1s}
+.sw:hover{transform:scale(1.15)}
+.sw.on{border-color:#1a1d23}
+.pdel{margin:8px 12px;padding:6px;width:calc(100% - 24px);background:#fff0f0;color:var(--red);border:1px solid #ffb3b3;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit}
+.pdel:hover{background:#ffe0e0}
+.emsg{flex:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--tx3);text-align:center;padding:20px;line-height:1.8}
+#hint{display:none;position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(59,111,232,.9);color:#fff;font-size:12px;padding:6px 18px;border-radius:20px;pointer-events:none;z-index:10;white-space:nowrap}
+#hint.show{display:block}
+#lov{display:none;position:absolute;inset:0;background:rgba(0,0,0,.25);z-index:20;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+#lov.show{display:flex}
+.spin{width:36px;height:36px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#lgd{position:absolute;bottom:12px;right:12px;background:var(--sur);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;font-size:10px;color:var(--tx2);display:flex;flex-direction:column;gap:4px;pointer-events:none}
+.lr{display:flex;align-items:center;gap:6px}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;align-items:center;justify-content:center}
+.ov.show{display:flex}
+.mb{background:var(--sur);border-radius:12px;padding:22px;box-shadow:0 8px 40px rgba(0,0,0,.22);width:290px}
+.mb h2{font-size:14px;font-weight:600;margin-bottom:14px}
+.mr{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+.ml{font-size:11px;color:var(--tx2);font-weight:500}
+.mi{padding:6px 9px;border:1px solid var(--bd);border-radius:8px;background:var(--sur2);color:var(--tx);font-size:12px;font-family:inherit;outline:none;width:100%}
+.mi:focus{border-color:var(--ac)}
+.ma{display:flex;gap:7px;margin-top:14px}
+.mc{flex:1;padding:7px;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;border:1px solid var(--bd);background:var(--sur2);color:var(--tx2)}
+.mc:hover{background:var(--bd)}
+.mok{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:500}
+.mok:hover{background:#2655c8;color:#fff}
+#pvb{display:flex;align-items:center;gap:10px;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--sur2);min-height:46px}
+</style>
+</head>
+<body>
+
+<div id="tb">
+  <h1>🌐 NW構成図</h1>
+  <div class="sep"></div>
+  <button class="btn on" id="bsel">▷ 選択</button>
+  <button class="btn" id="bcon">⊸ 接続 (C)</button>
+  <div class="sep"></div>
+  <button class="btn" id="bzi">＋</button>
+  <span id="zdsp">100%</span>
+  <button class="btn" id="bzo">－</button>
+  <button class="btn" id="bfit">全体表示(F)</button>
+  <div class="sep"></div>
+  <button class="btn" id="bimg">🖼 画像保存</button>
+  <button class="btn" id="bapikey" title="APIキー設定">🔑 APIキー</button>
+  <button class="btn red" id="bclr">リセット</button>
+</div>
+
+<div id="wrap">
+<div id="sb">
+  <div class="ss">
+    <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px">✦ AI自動生成</div>
+    <textarea id="aitx" placeholder="例：FW→ルーター→スイッチ→PC×3台とDBサーバー。SaaSはSlack・Gemini・kintone。"></textarea>
+    <div class="chips">
+      <span class="chip" data-p="オフィスLAN：インターネット→ルーター→スイッチ→PC×3台とプリンター">オフィス</span>
+      <span class="chip" data-p="DMZ構成：インターネット→外部FW→DMZ(Webサーバー,DNS)→内部FW→社内LAN(PC×3台,DBサーバー)">DMZ</span>
+      <span class="chip" data-p="クラウド：インターネット→ALB→Webサーバー×2→DBサーバー。SaaS: Slack,Salesforce,Microsoft365">クラウド</span>
+      <span class="chip" data-p="拠点間VPN：本社(ルーター→スイッチ→PC×3台)と支社(ルーター→PC×2台)をVPN接続。SaaS: Microsoft365,Gemini">VPN</span>
+    </div>
+    <button id="bgen">▶ NW構成図を作成</button>
+    <div id="ast"></div>
+  </div>
+  <div class="ss">
+    <div class="sl">接続タイプ</div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--tx2)"><input type="radio" name="et" value="lan" checked style="accent-color:var(--ac)">LAN（有線）</label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--tx2)"><input type="radio" name="et" value="wifi" style="accent-color:var(--ac)">Wi-Fi</label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--tx2)"><input type="radio" name="et" value="wan" style="accent-color:var(--ac)">WAN</label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--tx2)"><input type="radio" name="et" value="vpn" style="accent-color:var(--ac)">VPN</label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--tx2)"><input type="radio" name="et" value="internet" style="accent-color:var(--ac)">インターネット</label>
+    </div>
+  </div>
+  <div class="ss">
+    <div class="sl">ドラッグで追加</div>
+    <div class="ng">
+      <div class="ni" draggable="true" data-t="internet"><span class="ico">🌏</span>インターネット</div>
+      <div class="ni" draggable="true" data-t="cloud"><span class="ico">☁️</span>クラウド</div>
+      <div class="ni" draggable="true" data-t="firewall"><span class="ico">🛡</span>FW</div>
+      <div class="ni" draggable="true" data-t="router"><span class="ico">🔀</span>ルーター</div>
+      <div class="ni" draggable="true" data-t="switch"><span class="ico">🔌</span>スイッチ</div>
+      <div class="ni" draggable="true" data-t="ap"><span class="ico">📡</span>AP</div>
+      <div class="ni" draggable="true" data-t="lb"><span class="ico">⚖️</span>LB</div>
+      <div class="ni" draggable="true" data-t="vpn_gw"><span class="ico">🔒</span>VPN GW</div>
+      <div class="ni" draggable="true" data-t="server"><span class="ico">🖥</span>サーバー</div>
+      <div class="ni" draggable="true" data-t="web"><span class="ico">🌐</span>Webサーバー</div>
+      <div class="ni" draggable="true" data-t="db"><span class="ico">🗄</span>DB</div>
+      <div class="ni" draggable="true" data-t="dns"><span class="ico">📋</span>DNS</div>
+      <div class="ni" draggable="true" data-t="pc"><span class="ico">💻</span>PC</div>
+      <div class="ni" draggable="true" data-t="mobile"><span class="ico">📱</span>モバイル</div>
+      <div class="ni" draggable="true" data-t="printer"><span class="ico">🖨</span>プリンター</div>
+      <div class="ni" draggable="true" data-t="storage"><span class="ico">💾</span>ストレージ</div>
+      <div class="ni" draggable="true" data-t="saas"><span class="ico">📦</span>SaaS</div>
+    </div>
+  </div>
+  <div class="ss">
+    <div id="saas-hdr"><span class="sl" style="margin-bottom:0">SaaS カスタム</span><button id="badd">＋</button></div>
+    <div class="ng" id="csg"></div>
+    <div id="saas-emp">＋ボタンで追加</div>
+  </div>
+</div>
+
+<div id="cw">
+  <div id="grid"></div>
+  <div id="vp">
+    <svg id="dg" width="3000" height="2000">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <g id="elay"></g>
+      <g id="nlay"></g>
+    </svg>
+  </div>
+  <div id="hint">接続元を選択 → 接続先をクリック（Escでキャンセル）</div>
+  <div id="lov"><div class="spin"></div><div style="color:#fff;font-size:13px;font-weight:500">AIが生成中…</div></div>
+  <div id="lgd">
+    <div class="lr"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#c5cad4" stroke-width="2"/></svg>LAN</div>
+    <div class="lr"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 3"/></svg>Wi-Fi/VPN</div>
+    <div class="lr"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#d97706" stroke-width="2.5"/></svg>WAN</div>
+    <div class="lr"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#1a73b8" stroke-width="2" stroke-dasharray="5 3"/></svg>Internet</div>
+  </div>
+</div>
+
+<div id="props">
+  <div class="emsg">機器を選択すると<br>プロパティが表示されます<br><br><span style="font-size:10px;color:var(--tx3)">Del：削除 / C：接続<br>F：全体表示<br>Alt+ドラッグ：移動</span></div>
+</div>
+</div>
+
+<!-- 画像保存モーダル -->
+<div class="ov" id="imgov">
+  <div class="mb" style="text-align:center">
+    <h2 style="margin-bottom:6px">🖼 画像として保存</h2>
+    <p style="font-size:11px;color:var(--tx2);margin-bottom:18px">現在の編集内容をそのまま保存します</p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button id="fpng" style="padding:14px 24px;font-size:15px;font-weight:600;background:var(--ac);color:#fff;border:none;border-radius:8px;cursor:pointer">🖼 PNG</button>
+      <button id="fjpg" style="padding:14px 24px;font-size:15px;font-weight:600;background:#059669;color:#fff;border:none;border-radius:8px;cursor:pointer">📷 JPEG</button>
+    </div>
+    <button id="fcancel" style="margin-top:14px;padding:8px;width:100%;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;border:1px solid var(--bd);background:var(--sur2);color:var(--tx2)">キャンセル</button>
+  </div>
+</div>
+
+
+<!-- APIキー設定モーダル -->
+<div class="ov" id="apiov">
+  <div class="mb" style="width:360px">
+    <h2>🔑 APIキー設定</h2>
+    <p style="font-size:12px;color:var(--tx2);margin-bottom:14px;line-height:1.6">
+      Anthropic APIキーを入力するとAI自動生成が使えます。<br>
+      キーはこのブラウザにのみ保存され、外部には送信されません。
+    </p>
+    <div class="mr">
+      <span class="ml">APIキー</span>
+      <div style="position:relative">
+        <input class="mi" id="apiinp" type="password" placeholder="sk-ant-api03-…" style="padding-right:40px">
+        <button id="apitoggle" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tx2);font-size:14px">👁</button>
+      </div>
+    </div>
+    <div id="apistatus" style="font-size:11px;min-height:16px;margin-bottom:4px"></div>
+    <div style="background:var(--sur2);border:1px solid var(--bd);border-radius:8px;padding:10px;font-size:11px;color:var(--tx2);line-height:1.6;margin-bottom:4px">
+      <strong>APIキーの取得方法</strong><br>
+      1. <a href="https://console.anthropic.com" target="_blank" style="color:var(--ac)">console.anthropic.com</a> にアクセス<br>
+      2. サインアップ（無料）<br>
+      3. 「API Keys」→「Create Key」<br>
+      4. 発行されたキーをここに貼り付け<br>
+      <span style="color:var(--tx3)">※ 利用料金: 約$0.003/回（月数百円程度）</span>
+    </div>
+    <div class="ma">
+      <button class="mc" id="apicancel">閉じる</button>
+      <button class="mc mok" id="apisave">保存して接続確認</button>
+    </div>
+    <div id="apiclear" style="text-align:center;margin-top:10px">
+      <button style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--tx3);text-decoration:underline" id="apidelete">保存済みキーを削除</button>
+    </div>
+  </div>
+</div>
+
+<!-- SaaS追加モーダル -->
+<div class="ov" id="sov">
+  <div class="mb">
+    <h2>SaaSを追加</h2>
+    <div class="mr"><span class="ml">サービス名</span><input class="mi" id="sinp" placeholder="例: Gemini, kintone, Zoom…"></div>
+    <div class="mr"><span class="ml">プレビュー（自動判定）</span>
+      <div id="pvb"><div id="pvi" style="font-size:22px;line-height:1">📦</div>
+        <div><div id="pvn" style="font-size:12px;font-weight:500">サービス名を入力</div><div id="pvc" style="font-size:10px;color:var(--tx3)">カテゴリ</div></div>
+        <div id="pvd" style="width:9px;height:9px;border-radius:50%;background:#d97706;margin-left:auto;flex-shrink:0"></div>
+      </div>
+    </div>
+    <div class="ma"><button class="mc" id="scan">キャンセル</button><button class="mc mok" id="sok">追加</button></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════
+// データ定義
+// ═══════════════════════════
+const ND = {
+  internet:{lbl:'インターネット',ico:'🌏',sh:'cloud',col:'#1a73b8',bg:'#e8f1fc'},
+  cloud:   {lbl:'クラウド',      ico:'☁️', sh:'cloud',col:'#1a73b8',bg:'#e8f1fc'},
+  firewall:{lbl:'FW',            ico:'🛡', sh:'dia',  col:'#e84040',bg:'#fde8e8'},
+  router:  {lbl:'ルーター',      ico:'🔀',sh:'cir',  col:'#3b6fe8',bg:'#ebf0fc'},
+  switch:  {lbl:'スイッチ',      ico:'🔌',sh:'rect', col:'#0d9e75',bg:'#e0f5ee'},
+  ap:      {lbl:'AP',            ico:'📡',sh:'cir',  col:'#7c3aed',bg:'#f0eafd'},
+  lb:      {lbl:'LB',            ico:'⚖️',sh:'rect', col:'#d97706',bg:'#fdf4e0'},
+  vpn_gw:  {lbl:'VPN GW',       ico:'🔒',sh:'rect', col:'#7c3aed',bg:'#f0eafd'},
+  server:  {lbl:'サーバー',      ico:'🖥', sh:'rect', col:'#6b7280',bg:'#f1f2f4'},
+  web:     {lbl:'Webサーバー',   ico:'🌐',sh:'rect', col:'#0d9e75',bg:'#e0f5ee'},
+  db:      {lbl:'DB',            ico:'🗄', sh:'cyl',  col:'#1a73b8',bg:'#e8f1fc'},
+  dns:     {lbl:'DNS',           ico:'📋',sh:'rect', col:'#6b7280',bg:'#f1f2f4'},
+  pc:      {lbl:'PC',            ico:'💻',sh:'rect', col:'#374151',bg:'#f3f4f6'},
+  mobile:  {lbl:'モバイル',      ico:'📱',sh:'rect', col:'#374151',bg:'#f3f4f6'},
+  printer: {lbl:'プリンター',    ico:'🖨', sh:'rect', col:'#6b7280',bg:'#f1f2f4'},
+  storage: {lbl:'ストレージ',    ico:'💾',sh:'rect', col:'#6b7280',bg:'#f1f2f4'},
+  saas:    {lbl:'SaaS',          ico:'📦',sh:'rect', col:'#d97706',bg:'#fdf4e0'},
+};
+const SKB = {
+  slack:{ico:'💬',col:'#4a154b',bg:'#f5eef8',cat:'チャット'},
+  teams:{ico:'💬',col:'#5558af',bg:'#eeeffe',cat:'チャット'},
+  zoom:{ico:'📹',col:'#2d8cff',bg:'#e8f2ff',cat:'ビデオ会議'},
+  microsoft365:{ico:'🏢',col:'#d83b01',bg:'#fde8e0',cat:'オフィス'},
+  m365:{ico:'🏢',col:'#d83b01',bg:'#fde8e0',cat:'オフィス'},
+  office365:{ico:'🏢',col:'#d83b01',bg:'#fde8e0',cat:'オフィス'},
+  outlook:{ico:'📧',col:'#0078d4',bg:'#e0f0fc',cat:'メール'},
+  gmail:{ico:'📧',col:'#ea4335',bg:'#fde8e7',cat:'メール'},
+  googleworkspace:{ico:'🏢',col:'#4285f4',bg:'#e8f0fe',cat:'オフィス'},
+  salesforce:{ico:'☁️',col:'#00a1e0',bg:'#e0f5ff',cat:'CRM'},
+  hubspot:{ico:'🎯',col:'#ff7a59',bg:'#fff0ec',cat:'CRM'},
+  kintone:{ico:'🔷',col:'#0097ff',bg:'#e0f3ff',cat:'業務'},
+  servicenow:{ico:'⚙️',col:'#61d836',bg:'#edfae0',cat:'ITSM'},
+  jira:{ico:'🗂',col:'#0052cc',bg:'#e0eaff',cat:'PM'},
+  confluence:{ico:'📝',col:'#0052cc',bg:'#e0eaff',cat:'ドキュメント'},
+  backlog:{ico:'📋',col:'#00a4b0',bg:'#e0f8fa',cat:'PM'},
+  notion:{ico:'📓',col:'#191919',bg:'#f5f5f5',cat:'ドキュメント'},
+  chatwork:{ico:'💬',col:'#e8512f',bg:'#feeee9',cat:'チャット'},
+  lineworks:{ico:'💬',col:'#00c300',bg:'#e0f8e0',cat:'チャット'},
+  gemini:{ico:'✨',col:'#4285f4',bg:'#e8f0fe',cat:'AI'},
+  chatgpt:{ico:'🤖',col:'#10a37f',bg:'#e0f5ef',cat:'AI'},
+  openai:{ico:'🤖',col:'#10a37f',bg:'#e0f5ef',cat:'AI'},
+  claude:{ico:'🧠',col:'#c96442',bg:'#fdf0eb',cat:'AI'},
+  copilot:{ico:'🤖',col:'#0078d4',bg:'#e0f0fc',cat:'AI'},
+  perplexity:{ico:'🔍',col:'#20b8cd',bg:'#e0f8fa',cat:'AI'},
+  okta:{ico:'🔐',col:'#007dc1',bg:'#e0f2fb',cat:'認証'},
+  entraid:{ico:'🔐',col:'#0078d4',bg:'#e0f0fc',cat:'認証'},
+  aws:{ico:'☁️',col:'#ff9900',bg:'#fff4e0',cat:'クラウド'},
+  azure:{ico:'☁️',col:'#0078d4',bg:'#e0f0fc',cat:'クラウド'},
+  gcp:{ico:'☁️',col:'#4285f4',bg:'#e8f0fe',cat:'クラウド'},
+  box:{ico:'📦',col:'#0061d5',bg:'#e0eeff',cat:'ストレージ'},
+  dropbox:{ico:'📦',col:'#0061fe',bg:'#e0eeff',cat:'ストレージ'},
+  googledrive:{ico:'📁',col:'#4285f4',bg:'#e8f0fe',cat:'ストレージ'},
+  onedrive:{ico:'📁',col:'#0078d4',bg:'#e0f0fc',cat:'ストレージ'},
+  github:{ico:'🐙',col:'#24292f',bg:'#f0f1f3',cat:'開発'},
+  gitlab:{ico:'🦊',col:'#fc6d26',bg:'#fff0e8',cat:'開発'},
+  datadog:{ico:'📊',col:'#632ca6',bg:'#f0eafd',cat:'監視'},
+  newrelic:{ico:'📊',col:'#00ac69',bg:'#e0f9ef',cat:'監視'},
+  freee:{ico:'💰',col:'#00b900',bg:'#e0f8e0',cat:'会計'},
+  moneyforward:{ico:'💰',col:'#0066cc',bg:'#e0eeff',cat:'会計'},
+  sansan:{ico:'📇',col:'#ff6600',bg:'#fff0e0',cat:'名刺'},
+  shopify:{ico:'🛒',col:'#96bf48',bg:'#f2f8e7',cat:'EC'},
+};
+const ECOL = {lan:'#c5cad4',wifi:'#7c3aed',vpn:'#7c3aed',wan:'#d97706',internet:'#1a73b8'};
+const CLRS = [{v:'#3b6fe8',bg:'#ebf0fc'},{v:'#0d9e75',bg:'#e0f5ee'},{v:'#e84040',bg:'#fde8e8'},{v:'#7c3aed',bg:'#f0eafd'},{v:'#d97706',bg:'#fdf4e0'},{v:'#6b7280',bg:'#f1f2f4'},{v:'#1a73b8',bg:'#e8f1fc'},{v:'#374151',bg:'#f3f4f6'}];
+const customSaas = {};
+
+function resolveSaas(name) {
+  const k = name.toLowerCase().replace(/[\s\-_.]/g,'');
+  if (SKB[k]) return {...SKB[k], lbl:name};
+  for (const [sk,sv] of Object.entries(SKB))
+    if (k.includes(sk)||sk.includes(k)) return {...sv, lbl:name};
+  return {ico:'📦',col:'#d97706',bg:'#fdf4e0',cat:'SaaS',lbl:name};
+}
+
+// ═══════════════════════════
+// 状態（グローバル・単一）
+// ═══════════════════════════
+const nodes = [];   // {id,type,lbl,ip,note,col,bg,x,y}
+const edges = [];   // {id,from,to,type,bw}
+let selItem = null; // {type:'node'|'edge', id}
+let mode = 'select';
+let cfrom = null;
+let zoom = 1;
+let panX = 0, panY = 0;
+let nc = 1, ec = 1;
+
+// ═══════════════════════════
+// DOM参照
+// ═══════════════════════════
+const NS = 'http://www.w3.org/2000/svg';
+const cw  = document.getElementById('cw');
+const vp  = document.getElementById('vp');
+const dg  = document.getElementById('dg');
+const NL  = document.getElementById('nlay');
+const EL  = document.getElementById('elay');
+const hint= document.getElementById('hint');
+const lov = document.getElementById('lov');
+const ast = document.getElementById('ast');
+const zdsp= document.getElementById('zdsp');
+
+// ═══════════════════════════
+// ズーム・パン
+// ═══════════════════════════
+function applyT() {
+  vp.style.transform = `translate(${panX}px,${panY}px) scale(${zoom})`;
+  zdsp.textContent = Math.round(zoom*100)+'%';
+}
+function setZ(z){ zoom=Math.max(.2,Math.min(3,z)); applyT(); }
+
+document.getElementById('bzi').onclick = ()=>setZ(zoom*1.2);
+document.getElementById('bzo').onclick = ()=>setZ(zoom/1.2);
+document.getElementById('bfit').onclick = fitAll;
+cw.addEventListener('wheel',e=>{e.preventDefault();setZ(zoom*(e.deltaY<0?1.1:.9));},{passive:false});
+
+function fitAll(){
+  if(!nodes.length) return;
+  const p=60, xs=nodes.map(n=>n.x), ys=nodes.map(n=>n.y);
+  const x0=Math.min(...xs)-p, y0=Math.min(...ys)-p;
+  const x1=Math.max(...xs)+90+p, y1=Math.max(...ys)+90+p;
+  const ww=cw.offsetWidth, wh=cw.offsetHeight;
+  zoom = Math.min(ww/(x1-x0), wh/(y1-y0), 1.5);
+  panX = (ww-(x1-x0)*zoom)/2 - x0*zoom;
+  panY = (wh-(y1-y0)*zoom)/2 - y0*zoom;
+  applyT();
+}
+
+let pan0=null;
+cw.addEventListener('mousedown',e=>{
+  if(e.button!==1&&!(e.button===0&&e.altKey)) return;
+  pan0={x:e.clientX-panX,y:e.clientY-panY};e.preventDefault();
+});
+document.addEventListener('mousemove',e=>{
+  if(!pan0) return;
+  panX=e.clientX-pan0.x; panY=e.clientY-pan0.y; applyT();
+});
+document.addEventListener('mouseup',()=>pan0=null);
+
+// ═══════════════════════════
+// ドラッグ追加
+// ═══════════════════════════
+document.querySelectorAll('.ni').forEach(el=>
+  el.addEventListener('dragstart',e=>e.dataTransfer.setData('nt',el.dataset.t))
+);
+cw.addEventListener('dragover',e=>e.preventDefault());
+cw.addEventListener('drop',e=>{
+  e.preventDefault();
+  const t=e.dataTransfer.getData('nt'); if(!t) return;
+  const r=cw.getBoundingClientRect();
+  addNode(t,(e.clientX-r.left-panX)/zoom-40,(e.clientY-r.top-panY)/zoom-40);
+});
+
+// ═══════════════════════════
+// ノード追加
+// ═══════════════════════════
+function addNode(type, x, y, opts={}) {
+  // SaaS動的解決
+  if ((type==='saas'||type.startsWith('cs_')) && opts.lbl && opts.lbl!==(ND[type]||{}).lbl) {
+    const r=resolveSaas(opts.lbl);
+    const k=opts.lbl.toLowerCase().replace(/[\s\-_.]/g,'');
+    const dt='cs_'+k;
+    if (!ND[dt]) { ND[dt]={lbl:r.lbl,ico:r.ico,sh:'rect',col:r.col,bg:r.bg}; customSaas[k]={...r}; rebCSG(); }
+    type=dt;
+  }
+  if (!ND[type]) {
+    const r=resolveSaas(opts.lbl||type);
+    const k=(opts.lbl||type).toLowerCase().replace(/[\s\-_.]/g,'');
+    const dt='cs_'+k;
+    if (!ND[dt]) { ND[dt]={lbl:r.lbl,ico:r.ico,sh:'rect',col:r.col,bg:r.bg}; customSaas[k]={...r}; rebCSG(); }
+    type=dt;
+  }
+  const def=ND[type]||ND.server;
+  const n={id:'n'+(nc++),type,lbl:opts.lbl||def.lbl,ip:opts.ip||'',note:'',col:def.col,bg:def.bg,
+    x:Math.round(Math.max(0,x)/10)*10, y:Math.round(Math.max(0,y)/10)*10};
+  nodes.push(n); drawNode(n); return n;
+}
+
+// ═══════════════════════════
+// ノード描画
+// ═══════════════════════════
+function drawNode(n) {
+  document.getElementById('node-'+n.id)?.remove();
+  const def=ND[n.type]||ND.server;
+  const g=document.createElementNS(NS,'g');
+  g.id='node-'+n.id; g.classList.add('nn');
+  g.setAttribute('transform',`translate(${n.x},${n.y})`);
+
+  let sh;
+  if(def.sh==='cir'){sh=document.createElementNS(NS,'circle');sh.setAttribute('cx',40);sh.setAttribute('cy',32);sh.setAttribute('r',32);}
+  else if(def.sh==='dia'){sh=document.createElementNS(NS,'polygon');sh.setAttribute('points','40,2 76,32 40,62 4,32');}
+  else if(def.sh==='cloud'){sh=document.createElementNS(NS,'ellipse');sh.setAttribute('cx',40);sh.setAttribute('cy',30);sh.setAttribute('rx',38);sh.setAttribute('ry',26);}
+  else if(def.sh==='cyl'){sh=document.createElementNS(NS,'rect');sh.setAttribute('x',8);sh.setAttribute('y',8);sh.setAttribute('width',64);sh.setAttribute('height',48);sh.setAttribute('rx',28);}
+  else{sh=document.createElementNS(NS,'rect');sh.setAttribute('x',4);sh.setAttribute('y',4);sh.setAttribute('width',72);sh.setAttribute('height',56);sh.setAttribute('rx',10);}
+  sh.setAttribute('fill',n.bg); sh.setAttribute('stroke',n.col); sh.setAttribute('stroke-width','1.5'); sh.classList.add('nb');
+
+  const ico=document.createElementNS(NS,'text');
+  ico.setAttribute('x',40);ico.setAttribute('y',34);ico.setAttribute('text-anchor','middle');
+  ico.setAttribute('dominant-baseline','central');ico.setAttribute('font-size','20');ico.setAttribute('pointer-events','none');
+  ico.textContent=def.ico;
+
+  const lbl=document.createElementNS(NS,'text');
+  lbl.setAttribute('x',40);lbl.setAttribute('y',69);lbl.classList.add('nl');lbl.textContent=n.lbl;
+
+  const ipl=document.createElementNS(NS,'text');
+  ipl.setAttribute('x',40);ipl.setAttribute('y',80);ipl.classList.add('nip');ipl.textContent=n.ip||'';
+
+  [{x:40,y:0},{x:80,y:32},{x:40,y:64},{x:0,y:32}].forEach(p=>{
+    const pt=document.createElementNS(NS,'circle');
+    pt.setAttribute('cx',p.x);pt.setAttribute('cy',p.y);pt.setAttribute('r',5);
+    pt.setAttribute('fill',n.col);pt.setAttribute('stroke','#fff');pt.setAttribute('stroke-width','1.5');
+    pt.classList.add('pt');
+    pt.addEventListener('mousedown',ev=>{ev.stopPropagation();if(mode==='connect')doConn(n.id);});
+    g.appendChild(pt);
+  });
+  g.appendChild(sh);g.appendChild(ico);g.appendChild(lbl);g.appendChild(ipl);
+  NL.appendChild(g);
+
+  g.addEventListener('mousedown',e=>{
+    if(e.button!==0||mode==='connect') return;
+    e.stopPropagation();
+    const r=cw.getBoundingClientRect();
+    const ox=(e.clientX-r.left-panX)/zoom-n.x, oy=(e.clientY-r.top-panY)/zoom-n.y;
+    const mv=e2=>{
+      n.x=Math.round(((e2.clientX-r.left-panX)/zoom-ox)/10)*10;
+      n.y=Math.round(((e2.clientY-r.top-panY)/zoom-oy)/10)*10;
+      g.setAttribute('transform',`translate(${n.x},${n.y})`);
+      reEdges();
+    };
+    const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);};
+    document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
+    doSel('node',n.id);
+  });
+  g.addEventListener('click',e=>{
+    if(mode==='connect'){e.stopPropagation();doConn(n.id);}
+    else{e.stopPropagation();doSel('node',n.id);}
+  });
+}
+
+// ═══════════════════════════
+// エッジ
+// ═══════════════════════════
+function getET(){ return document.querySelector('input[name="et"]:checked')?.value||'lan'; }
+
+function addEdge(from,to,type,opts={}){
+  const ed={id:'e'+(ec++),from,to,type:type||'lan',bw:opts.bw||''};
+  edges.push(ed); drawEdge(ed); return ed;
+}
+function drawEdge(ed){
+  document.getElementById('edge-'+ed.id)?.remove();
+  const nf=nodes.find(n=>n.id===ed.from), nt=nodes.find(n=>n.id===ed.to);
+  if(!nf||!nt) return;
+  const x1=nf.x+40,y1=nf.y+32,x2=nt.x+40,y2=nt.y+32;
+  const dx=x2-x1,dy=y2-y1,mx=(x1+x2)/2+dy*.08,my=(y1+y2)/2-dx*.08;
+  const g=document.createElementNS(NS,'g'); g.id='edge-'+ed.id;
+  const hit=document.createElementNS(NS,'path');
+  hit.setAttribute('d',`M${x1},${y1} Q${mx},${my} ${x2},${y2}`);
+  hit.setAttribute('stroke-width','14');hit.setAttribute('stroke','transparent');hit.setAttribute('fill','none');
+  const path=document.createElementNS(NS,'path');
+  path.setAttribute('d',`M${x1},${y1} Q${mx},${my} ${x2},${y2}`);
+  path.classList.add('eg',ed.type);
+  if(['lan','wan','internet'].includes(ed.type)){
+    path.setAttribute('marker-end','url(#arr)');path.setAttribute('marker-start','url(#arr)');
+  }
+  const lbl=document.createElementNS(NS,'text');
+  lbl.setAttribute('x',(x1+x2)/2);lbl.setAttribute('y',(y1+y2)/2-10);
+  lbl.classList.add('egl');lbl.textContent=ed.bw||'';
+  g.appendChild(hit);g.appendChild(path);g.appendChild(lbl);EL.appendChild(g);
+  const oc=e=>{e.stopPropagation();doSel('edge',ed.id);};
+  hit.addEventListener('click',oc);path.addEventListener('click',oc);
+}
+function reEdges(){ edges.forEach(e=>drawEdge(e)); }
+
+function doConn(toId){
+  if(!cfrom){cfrom=toId;hint.textContent='接続先をクリック（Escでキャンセル）';return;}
+  if(cfrom===toId){cfrom=null;hint.textContent='接続元を選択 → 接続先をクリック';return;}
+  addEdge(cfrom,toId,getET());
+  cfrom=null;hint.textContent='接続元を選択 → 接続先をクリック';
+}
+
+// ═══════════════════════════
+// 選択・プロパティ
+// ═══════════════════════════
+function doSel(type,id){
+  if(selItem) document.getElementById((selItem.type==='node'?'node-':'edge-')+selItem.id)?.classList.remove('sel');
+  selItem={type,id};
+  document.getElementById((type==='node'?'node-':'edge-')+id)?.classList.add('sel');
+  drawProps();
+}
+function desel(){
+  if(selItem) document.getElementById((selItem.type==='node'?'node-':'edge-')+selItem.id)?.classList.remove('sel');
+  selItem=null; drawProps();
+}
+cw.addEventListener('click',e=>{
+  if(e.target===cw||e.target.id==='grid'||e.target===dg||e.target===vp) desel();
+});
+
+function drawProps(){
+  const pp=document.getElementById('props');
+  if(!selItem){
+    pp.innerHTML='<div class="emsg">機器を選択すると<br>プロパティが表示されます<br><br><span style="font-size:10px;color:var(--tx3)">Del：削除 / C：接続<br>F：全体表示<br>Alt+ドラッグ：移動</span></div>';
+    return;
+  }
+  selItem.type==='node' ? drawNP(selItem.id) : drawEP(selItem.id);
+}
+function drawNP(id){
+  const n=nodes.find(x=>x.id===id); if(!n) return;
+  const pp=document.getElementById('props');
+  pp.innerHTML=`<div class="ph">ノード設定</div>
+  <div class="pg">
+    <div class="pr"><span class="plb">ラベル</span><input class="pi" id="plbl" value="${esc(n.lbl)}"></div>
+    <div class="pr"><span class="plb">IPアドレス</span><input class="pi" id="pip" value="${esc(n.ip)}" placeholder="192.168.x.x"></div>
+    <div class="pr"><span class="plb">メモ</span><input class="pi" id="pnote" value="${esc(n.note)}" placeholder="追記…"></div>
+  </div>
+  <div class="pg"><span class="plb">カラー</span><div class="swp" id="pswp"></div></div>
+  <button class="pdel" id="pdel">削除</button>`;
+  const sw=document.getElementById('pswp');
+  CLRS.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='sw'+(n.col===c.v?' on':'');d.style.background=c.v;
+    d.onclick=()=>{n.col=c.v;n.bg=c.bg;drawNode(n);reEdges();doSel('node',id);};
+    sw.appendChild(d);
+  });
+  document.getElementById('plbl').oninput=e=>{n.lbl=e.target.value;document.querySelector('#node-'+id+' .nl').textContent=n.lbl;};
+  document.getElementById('pip').oninput=e=>{n.ip=e.target.value;document.querySelector('#node-'+id+' .nip').textContent=n.ip;};
+  document.getElementById('pnote').oninput=e=>n.note=e.target.value;
+  document.getElementById('pdel').onclick=del;
+}
+function drawEP(id){
+  const ed=edges.find(x=>x.id===id); if(!ed) return;
+  const types={lan:'LAN（有線）',wifi:'Wi-Fi',wan:'WAN',vpn:'VPN',internet:'インターネット'};
+  const pp=document.getElementById('props');
+  pp.innerHTML=`<div class="ph">接続線設定</div>
+  <div class="pg">
+    <div class="pr"><span class="plb">接続タイプ</span>
+      <select class="pi" id="pet">${Object.entries(types).map(([k,v])=>`<option value="${k}"${ed.type===k?' selected':''}>${v}</option>`).join('')}</select>
+    </div>
+    <div class="pr"><span class="plb">帯域・ラベル</span><input class="pi" id="pbw" value="${esc(ed.bw)}" placeholder="1Gbps"></div>
+  </div>
+  <button class="pdel" id="pdel">削除</button>`;
+  document.getElementById('pet').onchange=e=>{ed.type=e.target.value;drawEdge(ed);doSel('edge',id);};
+  document.getElementById('pbw').oninput=e=>{ed.bw=e.target.value;drawEdge(ed);};
+  document.getElementById('pdel').onclick=del;
+}
+function del(){
+  if(!selItem) return;
+  if(selItem.type==='node'){
+    const id=selItem.id;
+    const i=nodes.findIndex(n=>n.id===id); if(i>=0) nodes.splice(i,1);
+    document.getElementById('node-'+id)?.remove();
+    edges.filter(e=>e.from===id||e.to===id).forEach(e=>document.getElementById('edge-'+e.id)?.remove());
+    for(let i=edges.length-1;i>=0;i--) if(edges[i].from===id||edges[i].to===id) edges.splice(i,1);
+  } else {
+    const id=selItem.id;
+    const i=edges.findIndex(e=>e.id===id); if(i>=0) edges.splice(i,1);
+    document.getElementById('edge-'+id)?.remove();
+  }
+  desel();
+}
+
+// ═══════════════════════════
+// モード・キーボード
+// ═══════════════════════════
+function setMode(m){
+  mode=m; cfrom=null;
+  document.getElementById('bcon').classList.toggle('on',m==='connect');
+  document.getElementById('bsel').classList.toggle('on',m==='select');
+  hint.classList.toggle('show',m==='connect');
+}
+document.getElementById('bsel').onclick=()=>setMode('select');
+document.getElementById('bcon').onclick=()=>setMode(mode==='connect'?'select':'connect');
+document.getElementById('bclr').onclick=()=>{
+  if(!confirm('すべて削除しますか？')) return;
+  nodes.length=0; edges.length=0; NL.innerHTML=''; EL.innerHTML=''; desel();
+};
+document.addEventListener('keydown',e=>{
+  const t=document.activeElement.tagName;
+  if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT') return;
+  if(e.key==='Delete'||e.key==='Backspace') del();
+  if(e.key==='Escape'){setMode('select');desel();}
+  if(e.key==='c'||e.key==='C') setMode(mode==='connect'?'select':'connect');
+  if(e.key==='+'||e.key==='=') setZ(zoom*1.2);
+  if(e.key==='-') setZ(zoom/1.2);
+  if(e.key==='f'||e.key==='F') fitAll();
+});
+
+// ═══════════════════════════
+// 画像保存（Canvas直接描画）
+// ═══════════════════════════
+document.getElementById('bimg').onclick=()=>{
+  if(!nodes.length){alert('機器を配置してから保存してください');return;}
+  document.getElementById('imgov').classList.add('show');
+};
+document.getElementById('fcancel').onclick=()=>document.getElementById('imgov').classList.remove('show');
+document.getElementById('imgov').addEventListener('click',e=>{
+  if(e.target===document.getElementById('imgov')) document.getElementById('imgov').classList.remove('show');
+});
+document.getElementById('fpng').onclick=()=>{document.getElementById('imgov').classList.remove('show');saveImg('png');};
+document.getElementById('fjpg').onclick=()=>{document.getElementById('imgov').classList.remove('show');saveImg('jpeg');};
+
+function saveImg(fmt){
+  const pad=48;
+  const xs=nodes.map(n=>n.x), ys=nodes.map(n=>n.y);
+  const minX=Math.min(...xs)-pad, minY=Math.min(...ys)-pad;
+  const maxX=Math.max(...xs)+90+pad, maxY=Math.max(...ys)+90+pad;
+  const W=maxX-minX, H=maxY-minY;
+  const sc=2;
+  const cv=document.createElement('canvas');
+  cv.width=W*sc; cv.height=H*sc;
+  const ctx=cv.getContext('2d');
+  ctx.scale(sc,sc);
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect(0,0,W,H);
+
+  const tx=x=>x-minX, ty=y=>y-minY;
+
+  // エッジ
+  edges.forEach(ed=>{
+    const nf=nodes.find(n=>n.id===ed.from), nt=nodes.find(n=>n.id===ed.to);
+    if(!nf||!nt) return;
+    const x1=tx(nf.x+40),y1=ty(nf.y+32),x2=tx(nt.x+40),y2=ty(nt.y+32);
+    const dx=x2-x1,dy=y2-y1,mx=(x1+x2)/2+dy*.08,my=(y1+y2)/2-dx*.08;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.quadraticCurveTo(mx,my,x2,y2);
+    ctx.strokeStyle=ECOL[ed.type]||'#c5cad4';
+    ctx.lineWidth=ed.type==='wan'?2.5:2;
+    ctx.setLineDash(ed.type==='wifi'||ed.type==='vpn'?[6,4]:ed.type==='internet'?[5,3]:[]);
+    ctx.stroke();ctx.setLineDash([]);
+    if(ed.bw){ctx.font='10px sans-serif';ctx.fillStyle='#6b7280';ctx.textAlign='center';ctx.fillText(ed.bw,(x1+x2)/2,(y1+y2)/2-10);}
+  });
+
+  // ノード
+  nodes.forEach(n=>{
+    const def=ND[n.type]||ND.server;
+    const nx=tx(n.x),ny=ty(n.y);
+    ctx.fillStyle=n.bg;ctx.strokeStyle=n.col;ctx.lineWidth=1.5;
+    ctx.beginPath();
+    if(def.sh==='cir'){ctx.arc(nx+40,ny+32,32,0,Math.PI*2);}
+    else if(def.sh==='dia'){ctx.moveTo(nx+40,ny+2);ctx.lineTo(nx+76,ny+32);ctx.lineTo(nx+40,ny+62);ctx.lineTo(nx+4,ny+32);ctx.closePath();}
+    else if(def.sh==='cloud'){ctx.ellipse(nx+40,ny+30,38,26,0,0,Math.PI*2);}
+    else if(def.sh==='cyl'){rrect(ctx,nx+8,ny+8,64,48,28);}
+    else{rrect(ctx,nx+4,ny+4,72,56,10);}
+    ctx.fill();ctx.stroke();
+    ctx.font='19px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#000';
+    try{ctx.fillText(def.ico,nx+40,ny+33);}catch(e){}
+    ctx.font='600 11px sans-serif';ctx.textBaseline='top';ctx.fillStyle='#1a1d23';ctx.fillText(n.lbl,nx+40,ny+69);
+    if(n.ip){ctx.font='9px monospace';ctx.fillStyle='#a0a8b5';ctx.fillText(n.ip,nx+40,ny+81);}
+  });
+
+  const mime=fmt==='jpeg'?'image/jpeg':'image/png';
+  const ext=fmt==='jpeg'?'jpg':'png';
+  const url=cv.toDataURL(mime,fmt==='jpeg'?0.92:undefined);
+  const a=document.createElement('a');
+  a.href=url; a.download='network-diagram.'+ext;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function rrect(ctx,x,y,w,h,r){
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+
+// ═══════════════════════════
+// SaaSモーダル
+// ═══════════════════════════
+function rebCSG(){
+  const g=document.getElementById('csg'),em=document.getElementById('saas-emp');
+  g.innerHTML='';
+  const es=Object.entries(customSaas);
+  em.style.display=es.length?'none':'block';
+  es.forEach(([k,d])=>{
+    const el=document.createElement('div');
+    el.className='ni';el.draggable=true;el.dataset.t='cs_'+k;
+    el.innerHTML=`<span class="ico">${d.ico}</span><span style="font-size:9px;line-height:1.2">${d.lbl}</span>`;
+    el.addEventListener('dragstart',e2=>e2.dataTransfer.setData('nt','cs_'+k));
+    g.appendChild(el);
+  });
+}
+let pvT=null;
+document.getElementById('badd').onclick=()=>{document.getElementById('sinp').value='';updPv('');document.getElementById('sov').classList.add('show');setTimeout(()=>document.getElementById('sinp').focus(),50);};
+document.getElementById('scan').onclick=()=>document.getElementById('sov').classList.remove('show');
+document.getElementById('sov').addEventListener('click',e=>{if(e.target===document.getElementById('sov'))document.getElementById('sov').classList.remove('show');});
+document.getElementById('sinp').addEventListener('input',e=>{clearTimeout(pvT);pvT=setTimeout(()=>updPv(e.target.value),180);});
+document.getElementById('sinp').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('sok').click();});
+function updPv(name){
+  if(!name.trim()){document.getElementById('pvi').textContent='📦';document.getElementById('pvn').textContent='サービス名を入力';document.getElementById('pvc').textContent='カテゴリ';document.getElementById('pvd').style.background='#d97706';return;}
+  const r=resolveSaas(name.trim());
+  document.getElementById('pvi').textContent=r.ico;document.getElementById('pvn').textContent=r.lbl;document.getElementById('pvc').textContent=r.cat||'SaaS';document.getElementById('pvd').style.background=r.col;
+}
+document.getElementById('sok').onclick=()=>{
+  const name=document.getElementById('sinp').value.trim();if(!name)return;
+  const r=resolveSaas(name);const k=name.toLowerCase().replace(/[\s\-_.]/g,'');
+  ND['cs_'+k]={lbl:r.lbl,ico:r.ico,sh:'rect',col:r.col,bg:r.bg};customSaas[k]={...r};rebCSG();
+  document.getElementById('sov').classList.remove('show');
+};
+
+// ═══════════════════════════
+// AI生成
+// ═══════════════════════════
+document.querySelectorAll('.chip').forEach(el=>el.addEventListener('click',()=>document.getElementById('aitx').value=el.dataset.p));
+// ═══════════════════════════
+// APIキー管理
+// ═══════════════════════════
+const API_KEY_STORAGE = 'nw_diagram_apikey';
+
+function getApiKey(){ return localStorage.getItem(API_KEY_STORAGE)||''; }
+function setApiKey(k){ localStorage.setItem(API_KEY_STORAGE,k); }
+function clearApiKey(){ localStorage.removeItem(API_KEY_STORAGE); }
+
+function updateApiKeyUI(){
+  const k=getApiKey();
+  const btn=document.getElementById('bapikey');
+  if(k){ btn.textContent='🔑 APIキー ✓'; btn.style.color='var(--grn)'; btn.style.borderColor='#a7f3d0'; }
+  else { btn.textContent='🔑 APIキー設定'; btn.style.color=''; btn.style.borderColor=''; }
+}
+
+document.getElementById('bapikey').onclick=()=>{
+  const k=getApiKey();
+  const inp=document.getElementById('apiinp');
+  inp.value=k;
+  inp.type='password';
+  document.getElementById('apitoggle').textContent='👁';
+  document.getElementById('apistatus').textContent='';
+  document.getElementById('apistatus').style.color='';
+  document.getElementById('apiov').classList.add('show');
+  setTimeout(()=>inp.focus(),50);
+};
+document.getElementById('apicancel').onclick=()=>document.getElementById('apiov').classList.remove('show');
+document.getElementById('apiov').addEventListener('click',e=>{ if(e.target===document.getElementById('apiov')) document.getElementById('apiov').classList.remove('show'); });
+
+document.getElementById('apitoggle').onclick=()=>{
+  const inp=document.getElementById('apiinp');
+  const btn=document.getElementById('apitoggle');
+  if(inp.type==='password'){ inp.type='text'; btn.textContent='🙈'; }
+  else { inp.type='password'; btn.textContent='👁'; }
+};
+
+document.getElementById('apisave').onclick=async()=>{
+  const k=document.getElementById('apiinp').value.trim();
+  const st=document.getElementById('apistatus');
+  if(!k){ st.textContent='APIキーを入力してください'; st.style.color='var(--red)'; return; }
+  if(!k.startsWith('sk-ant-')){ st.textContent='形式が正しくありません（sk-ant- で始まるキーを入力）'; st.style.color='var(--red)'; return; }
+
+  const btn=document.getElementById('apisave');
+  btn.disabled=true; btn.textContent='確認中…';
+  st.textContent='接続を確認しています…'; st.style.color='var(--ac)';
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:10,messages:[{role:'user',content:'hi'}]})});
+    const data=await res.json();
+    if(data.error) throw new Error(data.error.message);
+    setApiKey(k);
+    st.textContent='✓ 接続成功！AIが使えるようになりました'; st.style.color='var(--grn)';
+    updateApiKeyUI();
+    setTimeout(()=>document.getElementById('apiov').classList.remove('show'),1500);
+  }catch(err){
+    st.textContent='接続失敗: '+err.message; st.style.color='var(--red)';
+  }finally{
+    btn.disabled=false; btn.textContent='保存して接続確認';
+  }
+};
+
+document.getElementById('apidelete').onclick=()=>{
+  if(!confirm('保存済みのAPIキーを削除しますか？')) return;
+  clearApiKey(); updateApiKeyUI();
+  document.getElementById('apistatus').textContent='キーを削除しました'; document.getElementById('apistatus').style.color='var(--tx2)';
+  document.getElementById('apiinp').value='';
+};
+
+// ═══════════════════════════
+// AI生成
+// ═══════════════════════════
+document.getElementById('bgen').onclick=genAI;
+
+async function genAI(){
+  const apiKey=getApiKey();
+  if(!apiKey){
+    setSt('APIキーが設定されていません','err');
+    document.getElementById('bapikey').click();
+    return;
+  }
+  const prompt=document.getElementById('aitx').value.trim();
+  if(!prompt){setSt('テキストを入力してください','err');return;}
+  document.getElementById('bgen').disabled=true;lov.classList.add('show');setSt('AIが解析中…','ld');
+  const sys=`ネットワーク構成図生成AI。JSON形式のみ返答。コードブロック不要。
+形式: {"nodes":[{"id":"n1","type":"router","lbl":"コアルーター","ip":"192.168.1.1","x":500,"y":100}],"edges":[{"from":"n1","to":"n2","type":"lan","bw":"1Gbps"}]}
+type選択肢: internet,cloud,firewall,router,switch,ap,lb,vpn_gw,server,web,db,dns,pc,mobile,printer,storage,saas
+SaaS(Slack,Gemini,kintone等)はtype="saas"でlblにサービス名をそのまま入れる
+接続type: lan,wifi,wan,vpn,internet
+レイアウト(x:80-1100,y:50-750): internet/cloud=y60-120、FW=y170-220、ルーター=y270-330、スイッチ=y380-440、サーバー=y490-570、PC=y620-720、SaaS=x900-1100縦並び。同階層120px以上間隔`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sys,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    if(data.error) throw new Error(data.error.message);
+    const text=data.content?.map(b=>b.text||'').join('');
+    let json;
+    try{json=JSON.parse(text.replace(/```[a-z]*/g,'').replace(/```/g,'').trim());}
+    catch{const m=text.match(/\{[\s\S]*\}/);if(!m)throw new Error('JSON解析失敗');json=JSON.parse(m[0]);}
+    nodes.length=0;edges.length=0;NL.innerHTML='';EL.innerHTML='';nc=1;ec=1;
+    const idMap={};
+    (json.nodes||[]).forEach(nd=>{
+      const n=addNode(nd.type||'server',nd.x||200,nd.y||200,{lbl:nd.lbl||nd.label,ip:nd.ip||''});
+      idMap[nd.id]=n.id;
+    });
+    (json.edges||[]).forEach(ed=>{
+      const f=idMap[ed.from],t=idMap[ed.to];
+      if(f&&t) addEdge(f,t,ed.type,{bw:ed.bw||ed.bandwidth||''});
+    });
+    setTimeout(fitAll,50);desel();
+    setSt(`✓ ${nodes.length}ノード・${edges.length}接続を生成`,'ok');
+  }catch(err){
+    console.error(err);
+    if(err.message.includes('401')||err.message.includes('authentication')) setSt('APIキーが無効です。再設定してください','err');
+    else setSt('エラー: '+err.message,'err');
+  }
+  finally{document.getElementById('bgen').disabled=false;lov.classList.remove('show');}
+}
+function setSt(m,c){ast.textContent=m;ast.className=c||'';}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+// ═══════════════════════════
+// サンプル
+// ═══════════════════════════
+(function(){
+  const i =addNode('internet',500,40, {lbl:'インターネット'});
+  const fw=addNode('firewall',500,170,{lbl:'FW',ip:'10.0.0.1'});
+  const r =addNode('router',  500,300,{lbl:'コアルーター',ip:'192.168.0.1'});
+  const s1=addNode('switch',  270,430,{lbl:'スイッチ(DMZ)'});
+  const s2=addNode('switch',  730,430,{lbl:'スイッチ(LAN)'});
+  const w =addNode('web',     140,570,{lbl:'Webサーバー',ip:'10.0.1.10'});
+  const db=addNode('db',      360,570,{lbl:'DBサーバー',ip:'10.0.1.20'});
+  const p1=addNode('pc',      640,570,{lbl:'PC-01',ip:'192.168.1.101'});
+  const p2=addNode('pc',      800,570,{lbl:'PC-02',ip:'192.168.1.102'});
+  const sc=addNode('saas',    960,100,{lbl:'Slack'});
+  const gm=addNode('saas',    960,230,{lbl:'Gemini'});
+  const kt=addNode('saas',    960,360,{lbl:'kintone'});
+  addEdge(i.id,fw.id,'internet');addEdge(fw.id,r.id,'lan');
+  addEdge(r.id,s1.id,'lan',{bw:'1Gbps'});addEdge(r.id,s2.id,'lan',{bw:'1Gbps'});
+  addEdge(s1.id,w.id,'lan');addEdge(s1.id,db.id,'lan');
+  addEdge(s2.id,p1.id,'wifi');addEdge(s2.id,p2.id,'wifi');
+  addEdge(r.id,sc.id,'internet');addEdge(r.id,gm.id,'internet');addEdge(r.id,kt.id,'internet');
+  setTimeout(fitAll,80);desel();
+})();
+setMode('select');applyT();updateApiKeyUI();
+</script>
+</body>
+</html>
