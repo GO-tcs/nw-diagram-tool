@@ -142,7 +142,7 @@ svg#dg{overflow:visible}
     <div class="ng">
       <div class="ni" draggable="true" data-t="internet"><span class="ico">🌏</span>インターネット</div>
       <div class="ni" draggable="true" data-t="cloud"><span class="ico">☁️</span>クラウド</div>
-      <div class="ni" draggable="true" data-t="firewall"><span class="ico">🛡</span>FW</div>
+      <div class="ni" draggable="true" data-t="firewall"><span class="ico">🛡</span>UTM/FW</div>
       <div class="ni" draggable="true" data-t="router"><span class="ico">🔀</span>ルーター</div>
       <div class="ni" draggable="true" data-t="switch"><span class="ico">🔌</span>スイッチ</div>
       <div class="ni" draggable="true" data-t="ap"><span class="ico">📡</span>AP</div>
@@ -190,7 +190,7 @@ svg#dg{overflow:visible}
 </div>
 
 <div id="props">
-  <div class="emsg">機器を選択すると<br>プロパティが表示されます<br><br><span style="font-size:10px;color:var(--tx3)">Del：削除 / C：接続<br>F：全体表示<br>Alt+ドラッグ：移動</span></div>
+  <div class="emsg">機器を選択すると<br>プロパティが表示されます<br><br><span style="font-size:10px;color:var(--tx3)">Del：削除 / C：接続<br>F：全体表示<br>Ctrl+C：コピー<br>Ctrl+V：貼り付け<br>Ctrl+D：複製<br>Alt+ドラッグ：移動</span></div>
 </div>
 </div>
 
@@ -264,7 +264,7 @@ svg#dg{overflow:visible}
 const ND = {
   internet:{lbl:'インターネット',ico:'🌏',sh:'cloud',col:'#1a73b8',bg:'#e8f1fc'},
   cloud:   {lbl:'クラウド',      ico:'☁️', sh:'cloud',col:'#1a73b8',bg:'#e8f1fc'},
-  firewall:{lbl:'FW',            ico:'🛡', sh:'dia',  col:'#e84040',bg:'#fde8e8'},
+  firewall:{lbl:'UTM',           ico:'🛡', sh:'dia',  col:'#e84040',bg:'#fde8e8'},
   router:  {lbl:'ルーター',      ico:'🔀',sh:'cir',  col:'#3b6fe8',bg:'#ebf0fc'},
   switch:  {lbl:'スイッチ',      ico:'🔌',sh:'rect', col:'#0d9e75',bg:'#e0f5ee'},
   ap:      {lbl:'AP',            ico:'📡',sh:'cir',  col:'#7c3aed',bg:'#f0eafd'},
@@ -560,7 +560,7 @@ cw.addEventListener('click',e=>{
 function drawProps(){
   const pp=document.getElementById('props');
   if(!selItem){
-    pp.innerHTML='<div class="emsg">機器を選択すると<br>プロパティが表示されます<br><br><span style="font-size:10px;color:var(--tx3)">Del：削除 / C：接続<br>F：全体表示<br>Alt+ドラッグ：移動</span></div>';
+    pp.innerHTML='<div class="emsg">機器を選択すると<br>プロパティが表示されます<br><br><span style="font-size:10px;color:var(--tx3)">Del：削除 / C：接続<br>F：全体表示<br>Ctrl+C：コピー<br>Ctrl+V：貼り付け<br>Ctrl+D：複製<br>Alt+ドラッグ：移動</span></div>';
     return;
   }
   selItem.type==='node' ? drawNP(selItem.id) : drawEP(selItem.id);
@@ -587,6 +587,17 @@ function drawNP(id){
   document.getElementById('pip').oninput=e=>{n.ip=e.target.value;document.querySelector('#node-'+id+' .nip').textContent=n.ip;};
   document.getElementById('pnote').oninput=e=>n.note=e.target.value;
   document.getElementById('pdel').onclick=del;
+  // コピーボタン
+  const cpbtn=document.createElement('button');
+  cpbtn.textContent='複製 (Ctrl+D)';
+  cpbtn.style.cssText='margin:0 12px 8px;padding:6px;width:calc(100% - 24px);background:var(--acb);color:var(--ac);border:1px solid #bad0f8;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit';
+  cpbtn.onclick=()=>{
+    const n=nodes.find(x=>x.id===id);if(!n)return;
+    const copy=addNode(n.type,n.x+50,n.y+50,{lbl:n.lbl,ip:n.ip,note:n.note});
+    copy.col=n.col;copy.bg=n.bg;drawNode(copy);doSel('node',copy.id);
+    showToast('複製しました');
+  };
+  document.getElementById('props').insertBefore(cpbtn, document.getElementById('pdel'));
 }
 function drawEP(id){
   const ed=edges.find(x=>x.id===id); if(!ed) return;
@@ -635,16 +646,77 @@ document.getElementById('bclr').onclick=()=>{
   if(!confirm('すべて削除しますか？')) return;
   nodes.length=0; edges.length=0; NL.innerHTML=''; EL.innerHTML=''; desel();
 };
+// コピー用クリップボード
+let clipboard = null;
+
 document.addEventListener('keydown',e=>{
   const t=document.activeElement.tagName;
   if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT') return;
+
+  // Ctrl+C / Cmd+C : コピー
+  if((e.ctrlKey||e.metaKey) && e.key==='c'){
+    if(!selItem) return;
+    if(selItem.type==='node'){
+      const n=nodes.find(x=>x.id===selItem.id);
+      if(n) clipboard={type:'node',data:{...n}};
+    } else {
+      const ed=edges.find(x=>x.id===selItem.id);
+      if(ed) clipboard={type:'edge',data:{...ed}};
+    }
+    showToast('コピーしました');
+    return;
+  }
+
+  // Ctrl+V / Cmd+V : ペースト
+  if((e.ctrlKey||e.metaKey) && e.key==='v'){
+    if(!clipboard) return;
+    if(clipboard.type==='node'){
+      const d=clipboard.data;
+      const n=addNode(d.type, d.x+40, d.y+40, {lbl:d.lbl, ip:d.ip, note:d.note});
+      n.col=d.col; n.bg=d.bg;
+      drawNode(n); doSel('node',n.id);
+      showToast('貼り付けました');
+    }
+    return;
+  }
+
+  // Ctrl+D / Cmd+D : 複製（コピー+ペーストの一発）
+  if((e.ctrlKey||e.metaKey) && e.key==='d'){
+    e.preventDefault();
+    if(!selItem||selItem.type!=='node') return;
+    const n=nodes.find(x=>x.id===selItem.id);
+    if(!n) return;
+    const copy=addNode(n.type, n.x+50, n.y+50, {lbl:n.lbl, ip:n.ip, note:n.note});
+    copy.col=n.col; copy.bg=n.bg;
+    drawNode(copy); doSel('node',copy.id);
+    showToast('複製しました');
+    return;
+  }
+
   if(e.key==='Delete'||e.key==='Backspace') del();
   if(e.key==='Escape'){setMode('select');desel();}
-  if(e.key==='c'||e.key==='C') setMode(mode==='connect'?'select':'connect');
+  if(e.key==='c'||e.key==='C'){
+    if(!e.ctrlKey&&!e.metaKey) setMode(mode==='connect'?'select':'connect');
+  }
   if(e.key==='+'||e.key==='=') setZ(zoom*1.2);
   if(e.key==='-') setZ(zoom/1.2);
   if(e.key==='f'||e.key==='F') fitAll();
 });
+
+// トースト通知
+function showToast(msg){
+  let t=document.getElementById('toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='toast';
+    t.style.cssText='position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:rgba(26,29,35,.85);color:#fff;font-size:12px;padding:7px 18px;border-radius:20px;pointer-events:none;z-index:999;transition:opacity .3s';
+    document.body.appendChild(t);
+  }
+  t.textContent=msg;
+  t.style.opacity='1';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.style.opacity='0',1500);
+}
 
 // ═══════════════════════════
 // 画像保存（Canvas直接描画）
