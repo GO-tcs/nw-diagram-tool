@@ -117,12 +117,12 @@ svg#dg{overflow:visible}
 <div id="sb">
   <div class="ss">
     <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px">✦ AI自動生成</div>
-    <textarea id="aitx" placeholder="例：FW→ルーター→スイッチ→PC×3台とDBサーバー。SaaSはSlack・Gemini・kintone。"></textarea>
+    <textarea id="aitx" placeholder="例：ルーター→UTM→スイッチ→PC×3台とDBサーバー。SaaSはSlack・Gemini・kintone。"></textarea>
     <div class="chips">
-      <span class="chip" data-p="オフィスLAN：インターネット→ルーター→スイッチ→PC×3台とプリンター">オフィス</span>
-      <span class="chip" data-p="DMZ構成：インターネット→外部FW→DMZ(Webサーバー,DNS)→内部FW→社内LAN(PC×3台,DBサーバー)">DMZ</span>
+      <span class="chip" data-p="オフィスLAN：インターネット→ルーター→UTM→スイッチ→PC×3台とプリンター">オフィス</span>
+      <span class="chip" data-p="DMZ構成：インターネット→外部ルーター→外部UTM→DMZ(Webサーバー,DNS)→内部UTM→社内LAN(PC×3台,DBサーバー)">DMZ</span>
       <span class="chip" data-p="クラウド：インターネット→ALB→Webサーバー×2→DBサーバー。SaaS: Slack,Salesforce,Microsoft365">クラウド</span>
-      <span class="chip" data-p="拠点間VPN：本社(ルーター→スイッチ→PC×3台)と支社(ルーター→PC×2台)をVPN接続。SaaS: Microsoft365,Gemini">VPN</span>
+      <span class="chip" data-p="拠点間VPN：本社(ルーター→UTM→スイッチ→PC×3台)と支社(ルーター→UTM→PC×2台)をVPN接続。ルーター同士をVPNで接続。SaaS: Microsoft365,Gemini">VPN</span>
     </div>
     <button id="bgen">▶ NW構成図を作成</button>
     <div id="ast"></div>
@@ -614,6 +614,16 @@ function drawEP(id){
   document.getElementById('pet').onchange=e=>{ed.type=e.target.value;drawEdge(ed);doSel('edge',id);};
   document.getElementById('pbw').oninput=e=>{ed.bw=e.target.value;drawEdge(ed);};
   document.getElementById('pdel').onclick=del;
+  // 複製ボタン
+  const ecpbtn=document.createElement('button');
+  ecpbtn.textContent='複製 (Ctrl+D)';
+  ecpbtn.style.cssText='margin:0 12px 8px;padding:6px;width:calc(100% - 24px);background:var(--acb);color:var(--ac);border:1px solid #bad0f8;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit';
+  ecpbtn.onclick=()=>{
+    const copy=addEdge(ed.from,ed.to,ed.type,{bw:ed.bw});
+    doSel('edge',copy.id);
+    showToast('接続線を複製しました');
+  };
+  document.getElementById('props').insertBefore(ecpbtn, document.getElementById('pdel'));
 }
 function del(){
   if(!selItem) return;
@@ -675,21 +685,41 @@ document.addEventListener('keydown',e=>{
       const n=addNode(d.type, d.x+40, d.y+40, {lbl:d.lbl, ip:d.ip, note:d.note});
       n.col=d.col; n.bg=d.bg;
       drawNode(n); doSel('node',n.id);
-      showToast('貼り付けました');
+      showToast('ノードを貼り付けました');
+    } else if(clipboard.type==='edge'){
+      // 線のコピー：同じfrom/toノードが存在する場合のみ貼り付け
+      const d=clipboard.data;
+      const fromExists=nodes.find(n=>n.id===d.from);
+      const toExists=nodes.find(n=>n.id===d.to);
+      if(fromExists&&toExists){
+        const ed=addEdge(d.from, d.to, d.type, {bw:d.bw});
+        doSel('edge',ed.id);
+        showToast('接続線を貼り付けました');
+      } else {
+        showToast('接続元または接続先のノードが見つかりません');
+      }
     }
     return;
   }
 
-  // Ctrl+D / Cmd+D : 複製（コピー+ペーストの一発）
+  // Ctrl+D / Cmd+D : 複製
   if((e.ctrlKey||e.metaKey) && e.key==='d'){
     e.preventDefault();
-    if(!selItem||selItem.type!=='node') return;
-    const n=nodes.find(x=>x.id===selItem.id);
-    if(!n) return;
-    const copy=addNode(n.type, n.x+50, n.y+50, {lbl:n.lbl, ip:n.ip, note:n.note});
-    copy.col=n.col; copy.bg=n.bg;
-    drawNode(copy); doSel('node',copy.id);
-    showToast('複製しました');
+    if(!selItem) return;
+    if(selItem.type==='node'){
+      const n=nodes.find(x=>x.id===selItem.id);
+      if(!n) return;
+      const copy=addNode(n.type, n.x+50, n.y+50, {lbl:n.lbl, ip:n.ip, note:n.note});
+      copy.col=n.col; copy.bg=n.bg;
+      drawNode(copy); doSel('node',copy.id);
+      showToast('ノードを複製しました');
+    } else if(selItem.type==='edge'){
+      const ed=edges.find(x=>x.id===selItem.id);
+      if(!ed) return;
+      const copy=addEdge(ed.from, ed.to, ed.type, {bw:ed.bw});
+      doSel('edge',copy.id);
+      showToast('接続線を複製しました');
+    }
     return;
   }
 
@@ -920,11 +950,26 @@ async function genAI(){
   if(!prompt){setSt('テキストを入力してください','err');return;}
   document.getElementById('bgen').disabled=true;lov.classList.add('show');setSt('AIが解析中…','ld');
   const sys=`ネットワーク構成図生成AI。JSON形式のみ返答。コードブロック不要。
-形式: {"nodes":[{"id":"n1","type":"router","lbl":"コアルーター","ip":"192.168.1.1","x":500,"y":100}],"edges":[{"from":"n1","to":"n2","type":"lan","bw":"1Gbps"}]}
+形式: {"nodes":[{"id":"n1","type":"router","lbl":"ルーター","ip":"192.168.1.1","x":500,"y":100}],"edges":[{"from":"n1","to":"n2","type":"lan","bw":"1Gbps"}]}
 type選択肢: internet,cloud,firewall,router,switch,ap,lb,vpn_gw,server,web,db,dns,pc,mobile,printer,storage,saas
 SaaS(Slack,Gemini,kintone等)はtype="saas"でlblにサービス名をそのまま入れる
 接続type: lan,wifi,wan,vpn,internet
-レイアウト(x:80-1100,y:50-750): internet/cloud=y60-120、FW=y170-220、ルーター=y270-330、スイッチ=y380-440、サーバー=y490-570、PC=y620-720、SaaS=x900-1100縦並び。同階層120px以上間隔`;
+
+ネットワーク構成の正しい順序（必ず守ること）:
+インターネット → ルーター → UTM/FW → スイッチ → PC/サーバー
+※ルーターはISPからの回線を終端する機器。UTM/FWはその内側に置いて内部ネットワークを守る。
+※UTM/FWのラベルは「UTM」を使うこと（古いFWという表現は使わない）
+※拠点間VPNはルーター同士をVPN接続する
+
+レイアウト(x:80-1100,y:50-750):
+- internet/cloud: y=60-120（最上部）
+- ルーター: y=180-230（インターネットの直下）
+- UTM/FW: y=290-340（ルーターの下）
+- スイッチ/LB: y=400-450
+- サーバー群: y=490-570
+- PC/端末: y=620-720（最下部）
+- SaaS: x=900-1100に縦並び
+- 同階層のノードは横に均等配置（最低120px間隔）`;
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
@@ -962,19 +1007,19 @@ function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').repla
 // ═══════════════════════════
 (function(){
   const i =addNode('internet',500,40, {lbl:'インターネット'});
-  const fw=addNode('firewall',500,170,{lbl:'FW',ip:'10.0.0.1'});
-  const r =addNode('router',  500,300,{lbl:'コアルーター',ip:'192.168.0.1'});
-  const s1=addNode('switch',  270,430,{lbl:'スイッチ(DMZ)'});
-  const s2=addNode('switch',  730,430,{lbl:'スイッチ(LAN)'});
-  const w =addNode('web',     140,570,{lbl:'Webサーバー',ip:'10.0.1.10'});
-  const db=addNode('db',      360,570,{lbl:'DBサーバー',ip:'10.0.1.20'});
-  const p1=addNode('pc',      640,570,{lbl:'PC-01',ip:'192.168.1.101'});
-  const p2=addNode('pc',      800,570,{lbl:'PC-02',ip:'192.168.1.102'});
+  const r =addNode('router',  500,180,{lbl:'コアルーター',ip:'210.0.0.1'});
+  const fw=addNode('firewall',500,310,{lbl:'UTM',ip:'192.168.0.1'});
+  const s1=addNode('switch',  270,440,{lbl:'スイッチ(DMZ)'});
+  const s2=addNode('switch',  730,440,{lbl:'スイッチ(LAN)'});
+  const w =addNode('web',     140,580,{lbl:'Webサーバー',ip:'10.0.1.10'});
+  const db=addNode('db',      360,580,{lbl:'DBサーバー',ip:'10.0.1.20'});
+  const p1=addNode('pc',      640,580,{lbl:'PC-01',ip:'192.168.1.101'});
+  const p2=addNode('pc',      800,580,{lbl:'PC-02',ip:'192.168.1.102'});
   const sc=addNode('saas',    960,100,{lbl:'Slack'});
   const gm=addNode('saas',    960,230,{lbl:'Gemini'});
   const kt=addNode('saas',    960,360,{lbl:'kintone'});
-  addEdge(i.id,fw.id,'internet');addEdge(fw.id,r.id,'lan');
-  addEdge(r.id,s1.id,'lan',{bw:'1Gbps'});addEdge(r.id,s2.id,'lan',{bw:'1Gbps'});
+  addEdge(i.id,r.id,'internet');addEdge(r.id,fw.id,'lan');
+  addEdge(fw.id,s1.id,'lan',{bw:'1Gbps'});addEdge(fw.id,s2.id,'lan',{bw:'1Gbps'});
   addEdge(s1.id,w.id,'lan');addEdge(s1.id,db.id,'lan');
   addEdge(s2.id,p1.id,'wifi');addEdge(s2.id,p2.id,'wifi');
   addEdge(r.id,sc.id,'internet');addEdge(r.id,gm.id,'internet');addEdge(r.id,kt.id,'internet');
