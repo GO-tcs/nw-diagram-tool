@@ -81,20 +81,19 @@ svg#dg{overflow:visible}
 .nb{transition:filter .15s}
 .nn:hover .nb{filter:drop-shadow(0 3px 10px rgba(0,0,0,.18))}
 .nn.sel .nb{filter:drop-shadow(0 0 0 2.5px #3b6fe8) drop-shadow(0 2px 8px rgba(0,0,0,.15))}
-.nl{font-size:11px;fill:#1a1d23;text-anchor:middle;dominant-baseline:hanging;pointer-events:none;font-family:'Segoe UI','Hiragino Sans','Yu Gothic UI',sans-serif}
-.nip{font-size:9px;fill:#a0a8b5;text-anchor:middle;dominant-baseline:hanging;pointer-events:none;font-family:monospace}
+.nl{font-size:12px;fill:#1a1d23;text-anchor:middle;dominant-baseline:hanging;pointer-events:none;font-family:'Segoe UI','Hiragino Sans','Yu Gothic UI',sans-serif}
+.nip{font-size:10px;fill:#6b7280;text-anchor:middle;dominant-baseline:hanging;pointer-events:none;font-family:monospace}
 .pt{cursor:crosshair;opacity:0;transition:opacity .15s}
 .nn:hover .pt{opacity:1}
 /* エッジ */
 .eg{stroke:#c5cad4;stroke-width:2;fill:none;cursor:pointer;transition:stroke .2s,stroke-width .2s}
 .eg:hover{stroke:#3b6fe8;stroke-width:3}
 .eg.sel{stroke:#3b6fe8;stroke-width:4}
-.eg.wifi{stroke:#7c3aed;stroke-dasharray:6 4}
-.eg.vpn{stroke:#7c3aed;stroke-dasharray:10 4 2 4}
+.eg.vpn{stroke:#16a34a;stroke-width:2;stroke-dasharray:10 4 2 4}
 .eg.wan{stroke:#d97706;stroke-width:2.5}
 .eg.wan.sel{stroke:#d97706;stroke-width:5}
 .eg.internet{stroke:#1a73b8;stroke-dasharray:5 3}
-.eg.wifi.sel,.eg.vpn.sel{stroke:#5b2aed;stroke-width:4}
+.eg.vpn.sel{stroke:#15803d;stroke-width:4}
 .eg.internet.sel{stroke:#0d5ca0;stroke-width:4}
 .egl{font-size:10px;fill:#6b7280;text-anchor:middle;dominant-baseline:central;pointer-events:none;font-family:sans-serif}
 /* エッジ端点ハンドル */
@@ -153,6 +152,9 @@ svg#dg{overflow:visible}
   <button class="btn on" id="bsel">▷ 選択</button>
   <button class="btn" id="bcon">⊸ 接続 (C)</button>
   <div class="sep"></div>
+  <button class="btn" id="bundo" title="元に戻す (Ctrl+Z)">↩ 戻る</button>
+  <button class="btn" id="bredo" title="やり直し (Ctrl+Y)">↪ 進む</button>
+  <div class="sep"></div>
   <button class="btn" id="bzi">＋</button>
   <span id="zdsp">100%</span>
   <button class="btn" id="bzo">－</button>
@@ -184,7 +186,6 @@ svg#dg{overflow:visible}
     <div class="sl">接続タイプ</div>
     <div style="display:flex;flex-direction:column;gap:5px">
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--tx2)"><input type="radio" name="et" value="lan" checked style="accent-color:var(--ac)">LAN（有線）</label>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--tx2)"><input type="radio" name="et" value="wifi" style="accent-color:var(--ac)">Wi-Fi</label>
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--tx2)"><input type="radio" name="et" value="wan" style="accent-color:var(--ac)">WAN</label>
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--tx2)"><input type="radio" name="et" value="vpn" style="accent-color:var(--ac)">VPN</label>
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--tx2)"><input type="radio" name="et" value="internet" style="accent-color:var(--ac)">インターネット</label>
@@ -241,7 +242,7 @@ svg#dg{overflow:visible}
   <div id="lov"><div class="spin"></div><div style="color:#fff;font-size:13px;font-weight:500">AIが生成中…</div></div>
   <div id="lgd">
     <div class="lr"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#c5cad4" stroke-width="2"/></svg>LAN</div>
-    <div class="lr"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 3"/></svg>Wi-Fi/VPN</div>
+    <div class="lr"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#16a34a" stroke-width="2" stroke-dasharray="8 3 2 3"/></svg>VPN</div>
     <div class="lr"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#d97706" stroke-width="2.5"/></svg>WAN</div>
     <div class="lr"><svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#1a73b8" stroke-width="2" stroke-dasharray="5 3"/></svg>Internet</div>
   </div>
@@ -380,7 +381,7 @@ const SKB = {
   sansan:{ico:'📇',col:'#ff6600',bg:'#fff0e0',cat:'名刺'},
   shopify:{ico:'🛒',col:'#96bf48',bg:'#f2f8e7',cat:'EC'},
 };
-const ECOL={lan:'#c5cad4',wifi:'#7c3aed',vpn:'#7c3aed',wan:'#d97706',internet:'#1a73b8'};
+const ECOL={lan:'#c5cad4',wifi:'#c5cad4',vpn:'#16a34a',wan:'#d97706',internet:'#1a73b8'};
 const CLRS=[{v:'#3b6fe8',bg:'#ebf0fc'},{v:'#0d9e75',bg:'#e0f5ee'},{v:'#e84040',bg:'#fde8e8'},{v:'#7c3aed',bg:'#f0eafd'},{v:'#d97706',bg:'#fdf4e0'},{v:'#6b7280',bg:'#f1f2f4'},{v:'#1a73b8',bg:'#e8f1fc'},{v:'#374151',bg:'#f3f4f6'}];
 const customSaas={};
 
@@ -398,6 +399,60 @@ const nodes=[], edges=[];
 let selItem=null, mode='select', cfrom=null;
 let zoom=1, panX=0, panY=0, nc=1, ec=1;
 let clipboard=null;
+
+// ═══════════════════════════════════════
+// 履歴（Undo/Redo）
+// ═══════════════════════════════════════
+const undoStack=[], redoStack=[];
+const MAX_HIST=50;
+
+function snapState(){
+  // 現在のnodes/edgesをディープコピーして保存
+  return {
+    nodes: nodes.map(n=>({...n})),
+    edges: edges.map(e=>({...e})),
+    nc, ec
+  };
+}
+
+function pushHistory(){
+  undoStack.push(snapState());
+  if(undoStack.length>MAX_HIST) undoStack.shift();
+  redoStack.length=0; // 新操作でredoはクリア
+  updateUndoUI();
+}
+
+function restoreState(snap){
+  nodes.length=0; edges.length=0;
+  NL.innerHTML=''; EL.innerHTML='';
+  clearHandles();
+  snap.nodes.forEach(n=>{nodes.push({...n});drawNode(nodes[nodes.length-1]);});
+  snap.edges.forEach(e=>{edges.push({...e});drawEdge(edges[edges.length-1]);});
+  nc=snap.nc; ec=snap.ec;
+  desel();
+}
+
+function undo(){
+  if(!undoStack.length) return;
+  redoStack.push(snapState());
+  restoreState(undoStack.pop());
+  updateUndoUI();
+  showToast('元に戻しました');
+}
+
+function redo(){
+  if(!redoStack.length) return;
+  undoStack.push(snapState());
+  restoreState(redoStack.pop());
+  updateUndoUI();
+  showToast('やり直しました');
+}
+
+function updateUndoUI(){
+  const bu=document.getElementById('bundo'),br=document.getElementById('bredo');
+  if(bu){bu.disabled=!undoStack.length;bu.style.opacity=undoStack.length?'1':'0.4';}
+  if(br){br.disabled=!redoStack.length;br.style.opacity=redoStack.length?'1':'0.4';}
+}
 
 const NS='http://www.w3.org/2000/svg';
 const cw=document.getElementById('cw');
@@ -419,6 +474,8 @@ function setZ(z){zoom=Math.max(.2,Math.min(3,z));applyT();}
 document.getElementById('bzi').onclick=()=>setZ(zoom*1.2);
 document.getElementById('bzo').onclick=()=>setZ(zoom/1.2);
 document.getElementById('bfit').onclick=fitAll;
+document.getElementById('bundo').onclick=undo;
+document.getElementById('bredo').onclick=redo;
 cw.addEventListener('wheel',e=>{e.preventDefault();setZ(zoom*(e.deltaY<0?1.1:.9));},{passive:false});
 function fitAll(){
   if(!nodes.length)return;
@@ -441,6 +498,7 @@ cw.addEventListener('dragover',e=>e.preventDefault());
 cw.addEventListener('drop',e=>{
   e.preventDefault();const t=e.dataTransfer.getData('nt');if(!t)return;
   const r=cw.getBoundingClientRect();
+  pushHistory();
   addNode(t,(e.clientX-r.left-panX)/zoom-40,(e.clientY-r.top-panY)/zoom-40);
 });
 
@@ -472,13 +530,13 @@ function drawNode(n){
   else if(def.sh==='dia'){sh=document.createElementNS(NS,'polygon');sh.setAttribute('points','40,2 76,32 40,62 4,32');}
   else if(def.sh==='cloud'){sh=document.createElementNS(NS,'ellipse');sh.setAttribute('cx',40);sh.setAttribute('cy',30);sh.setAttribute('rx',38);sh.setAttribute('ry',26);}
   else if(def.sh==='cyl'){sh=document.createElementNS(NS,'rect');sh.setAttribute('x',8);sh.setAttribute('y',8);sh.setAttribute('width',64);sh.setAttribute('height',48);sh.setAttribute('rx',28);}
-  else{sh=document.createElementNS(NS,'rect');sh.setAttribute('x',4);sh.setAttribute('y',4);sh.setAttribute('width',72);sh.setAttribute('height',56);sh.setAttribute('rx',10);}
+  else{sh=document.createElementNS(NS,'rect');sh.setAttribute('x',4);sh.setAttribute('y',4);sh.setAttribute('width',72);sh.setAttribute('height',60);sh.setAttribute('rx',10);}
   sh.setAttribute('fill',n.bg);sh.setAttribute('stroke',n.col);sh.setAttribute('stroke-width','1.5');sh.classList.add('nb');
   const ico=document.createElementNS(NS,'text');
-  ico.setAttribute('x',40);ico.setAttribute('y',34);ico.setAttribute('text-anchor','middle');ico.setAttribute('dominant-baseline','central');ico.setAttribute('font-size','20');ico.setAttribute('pointer-events','none');ico.textContent=def.ico;
-  const lbl=document.createElementNS(NS,'text');lbl.setAttribute('x',40);lbl.setAttribute('y',69);lbl.classList.add('nl');lbl.textContent=n.lbl;
-  const ipl=document.createElementNS(NS,'text');ipl.setAttribute('x',40);ipl.setAttribute('y',80);ipl.classList.add('nip');ipl.textContent=n.ip||'';
-  [{x:40,y:0},{x:80,y:32},{x:40,y:64},{x:0,y:32}].forEach(p=>{
+  ico.setAttribute('x',40);ico.setAttribute('y',30);ico.setAttribute('text-anchor','middle');ico.setAttribute('dominant-baseline','central');ico.setAttribute('font-size','20');ico.setAttribute('pointer-events','none');ico.textContent=def.ico;
+  const lbl=document.createElementNS(NS,'text');lbl.setAttribute('x',40);lbl.setAttribute('y',70);lbl.classList.add('nl');lbl.textContent=n.lbl;
+  const ipl=document.createElementNS(NS,'text');ipl.setAttribute('x',40);ipl.setAttribute('y',83);ipl.classList.add('nip');ipl.textContent=n.ip||'';
+  [{x:40,y:0},{x:80,y:32},{x:40,y:66},{x:0,y:32}].forEach(p=>{
     const pt=document.createElementNS(NS,'circle');pt.setAttribute('cx',p.x);pt.setAttribute('cy',p.y);pt.setAttribute('r',5);
     pt.setAttribute('fill',n.col);pt.setAttribute('stroke','#fff');pt.setAttribute('stroke-width','1.5');pt.classList.add('pt');
     pt.addEventListener('mousedown',ev=>{ev.stopPropagation();if(mode==='connect')doConn(n.id);});
@@ -494,7 +552,7 @@ function drawNode(n){
       n.y=Math.round(((e2.clientY-r.top-panY)/zoom-oy)/10)*10;
       g.setAttribute('transform',`translate(${n.x},${n.y})`);reEdges();
     };
-    const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);};
+    const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);pushHistory();};
     document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
     doSel('node',n.id);
   });
@@ -580,21 +638,23 @@ function drawEdge(ed){
 
     const mv=e2=>{
       const cx=(e2.clientX-r.left-panX)/zoom,cy=(e2.clientY-r.top-panY)/zoom;
-      const dx=Math.round((cx-startX)/10)*10,dy=Math.round((cy-startY)/10)*10;
-      if(dx===0&&dy===0)return;
+      const dx=cx-startX,dy=cy-startY;
+      if(Math.abs(dx)<2&&Math.abs(dy)<2)return;
       moved=true;
-      // フリー端点を移動
-      if(ed.fx1!==null||!nf){ ed.fx1=(origFx1||x1)+dx; ed.fy1=(origFy1||y1)+dy; ed.from=null; }
-      if(ed.fx2!==null||!nt){ ed.fx2=(origFx2||x2)+dx; ed.fy2=(origFy2||y2)+dy; ed.to=null; }
+      // 両端をフリー座標化して移動
+      ed.fx1=(origFx1!=null?origFx1:x1)+dx;
+      ed.fy1=(origFy1!=null?origFy1:y1)+dy;
+      ed.fx2=(origFx2!=null?origFx2:x2)+dx;
+      ed.fy2=(origFy2!=null?origFy2:y2)+dy;
+      ed.from=null; ed.to=null;
       drawEdge(ed);
-      // ハンドルも更新
-      const updH=document.getElementById('handle-'+ed.id);if(updH){updH.remove();}
+      clearHandles();
       doSel('edge',ed.id);
     };
     const up=()=>{
       document.removeEventListener('mousemove',mv);
       document.removeEventListener('mouseup',up);
-      if(!moved) return; // クリックと区別
+      if(moved) pushHistory();
     };
     document.addEventListener('mousemove',mv);
     document.addEventListener('mouseup',up);
@@ -669,6 +729,7 @@ function reEdges(){edges.forEach(e=>drawEdge(e));}
 function doConn(toId){
   if(!cfrom){cfrom=toId;hint.textContent='接続先をクリック（Escでキャンセル）';return;}
   if(cfrom===toId){cfrom=null;hint.textContent='接続元を選択 → 接続先をクリック';return;}
+  pushHistory();
   const ed=addEdge(cfrom,toId,getET());doSel('edge',ed.id);
   cfrom=null;hint.textContent='接続元を選択 → 接続先をクリック';
 }
@@ -750,7 +811,7 @@ function drawNP(id){
 
 function drawEP(id){
   const ed=edges.find(x=>x.id===id);if(!ed)return;
-  const types={lan:'LAN（有線）',wifi:'Wi-Fi',wan:'WAN',vpn:'VPN',internet:'インターネット'};
+  const types={lan:'LAN',wan:'WAN',vpn:'VPN',internet:'インターネット'};
   const pp=document.getElementById('props');
   pp.innerHTML=`<div class="ph">接続線設定</div>
   <div class="pg">
@@ -773,13 +834,14 @@ function drawEP(id){
 }
 
 function dupNode(n){
+  pushHistory();
   const copy=addNode(n.type,n.x+60,n.y+60,{lbl:n.lbl,ip:n.ip,note:n.note});
   copy.col=n.col;copy.bg=n.bg;drawNode(copy);doSel('node',copy.id);showToast('ノードを複製しました');
 }
 function dupEdge(ed){
   const pts=getEdgePoints(ed);
   if(!pts){showToast('線の座標を取得できません');return;}
-  // 元の線の選択を先に解除して青表示を消す
+  pushHistory();
   desel();
   const off=80;
   const copy=addEdge(null,null,ed.type,{
@@ -794,6 +856,7 @@ function dupEdge(ed){
 
 function del(){
   if(!selItem)return;
+  pushHistory();
   if(selItem.type==='node'){
     const id=selItem.id;const i=nodes.findIndex(n=>n.id===id);if(i>=0)nodes.splice(i,1);
     document.getElementById('node-'+id)?.remove();
@@ -814,6 +877,9 @@ document.addEventListener('keydown',e=>{
   const t=document.activeElement.tagName;
   if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT')return;
   const ctrl=e.ctrlKey||e.metaKey;
+
+  if(ctrl&&(e.key==='z'||e.key==='Z')){e.preventDefault();undo();return;}
+  if(ctrl&&(e.key==='y'||e.key==='Y')){e.preventDefault();redo();return;}
 
   if(ctrl&&e.key==='c'){
     if(!selItem)return;
@@ -888,7 +954,7 @@ function saveImg(fmt){
     const{x1,y1,x2,y2,mx,my}=pts;
     ctx.beginPath();ctx.moveTo(tx(x1),ty(y1));ctx.quadraticCurveTo(tx(mx),ty(my),tx(x2),ty(y2));
     ctx.strokeStyle=ECOL[ed.type]||'#c5cad4';ctx.lineWidth=ed.type==='wan'?2.5:2;
-    ctx.setLineDash(ed.type==='wifi'||ed.type==='vpn'?[6,4]:ed.type==='internet'?[5,3]:[]);
+    ctx.setLineDash(ed.type==='vpn'?[10,4,2,4]:ed.type==='internet'?[5,3]:[]);
     ctx.stroke();ctx.setLineDash([]);
     if(ed.bw){ctx.font='10px sans-serif';ctx.fillStyle='#6b7280';ctx.textAlign='center';ctx.fillText(ed.bw,tx((x1+x2)/2),ty((y1+y2)/2)-12);}
   });
@@ -903,8 +969,8 @@ function saveImg(fmt){
     ctx.fill();ctx.stroke();
     ctx.font='19px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#000';
     try{ctx.fillText(def.ico,nx+40,ny+33);}catch(e){}
-    ctx.font='600 11px sans-serif';ctx.textBaseline='top';ctx.fillStyle='#1a1d23';ctx.fillText(n.lbl,nx+40,ny+69);
-    if(n.ip){ctx.font='9px monospace';ctx.fillStyle='#a0a8b5';ctx.fillText(n.ip,nx+40,ny+81);}
+    ctx.font='600 12px sans-serif';ctx.textBaseline='top';ctx.fillStyle='#1a1d23';ctx.fillText(n.lbl,nx+40,ny+70);
+    if(n.ip){ctx.font='10px monospace';ctx.fillStyle='#6b7280';ctx.fillText(n.ip,nx+40,ny+84);}
   });
   const url=cv.toDataURL(fmt==='jpeg'?'image/jpeg':'image/png',fmt==='jpeg'?0.92:undefined);
   const a=document.createElement('a');a.href=url;a.download='network-diagram.'+(fmt==='jpeg'?'jpg':'png');
@@ -1015,6 +1081,7 @@ async function genAI(){
     var json;
     try{json=JSON.parse(text.replace(/```[a-z]*/g,'').replace(/```/g,'').trim());}
     catch(e){var m=text.match(/\{[\s\S]*\}/);if(!m)throw new Error('JSON解析失敗');json=JSON.parse(m[0]);}
+    pushHistory();
     nodes.length=0;edges.length=0;NL.innerHTML='';EL.innerHTML='';nc=1;ec=1;
     var idMap={};
     (json.nodes||[]).forEach(function(nd){var n=addNode(nd.type||'server',nd.x||200,nd.y||200,{lbl:nd.lbl||nd.label||'',ip:nd.ip||''});idMap[nd.id]=n.id;});
@@ -1037,32 +1104,42 @@ function showToast(msg){
 // サンプル
 // ═══════════════════════════════════════
 (function(){
-  const i  =addNode('internet', 440, 40,{lbl:'インターネット'});
-  const r  =addNode('router',   440,180,{lbl:'ルーター',      ip:'210.1.1.1'});
-  const utm=addNode('firewall', 440,310,{lbl:'UTM',           ip:'192.168.0.1'});
-  const sw =addNode('l2sw',     440,440,{lbl:'L2スイッチ',    ip:'192.168.0.2'});
-  const p1 =addNode('pc',       160,590,{lbl:'デスクトップPC-01', ip:'192.168.0.101'});
-  const p2 =addNode('pc',       300,590,{lbl:'デスクトップPC-02', ip:'192.168.0.102'});
-  const p3 =addNode('pc',       440,590,{lbl:'ノートPC-01',   ip:'192.168.0.103'});
-  const p4 =addNode('pc',       580,590,{lbl:'ノートPC-02',   ip:'192.168.0.104'});
-  const mfp=addNode('mfp',      720,590,{lbl:'複合機',        ip:'192.168.0.200'});
-  const m365=addNode('saas',    680, 40,{lbl:'Microsoft365'});
-  const sl =addNode('saas',     820, 40,{lbl:'Slack'});
-  const kt =addNode('saas',     960, 40,{lbl:'kintone'});
-  addEdge(i.id, r.id,  'internet');
-  addEdge(r.id, utm.id,'lan');
-  addEdge(utm.id,sw.id,'lan',{bw:'1Gbps'});
-  addEdge(sw.id, p1.id,'lan');
-  addEdge(sw.id, p2.id,'lan');
-  addEdge(sw.id, p3.id,'wifi');
-  addEdge(sw.id, p4.id,'wifi');
-  addEdge(sw.id, mfp.id,'lan');
-  addEdge(i.id, m365.id,'internet');
-  addEdge(i.id, sl.id,  'internet');
-  addEdge(i.id, kt.id,  'internet');
-  setTimeout(fitAll,80);desel();
+  // ── 縦一列（x=200中央、コンパクト配置）──
+  const i  =addNode('internet', 200, 30, {lbl:'インターネット'});
+  const r  =addNode('router',   200,150, {lbl:'ルーター',   ip:'210.1.1.1'});
+  const utm=addNode('firewall', 200,270, {lbl:'UTM',        ip:'192.168.0.1'});
+  const sw =addNode('l2sw',     200,390, {lbl:'L2スイッチ', ip:'192.168.0.2'});
+  // ── PC・複合機（横一列）──
+  const p1 =addNode('pc',        30,520, {lbl:'PC-01（デスク）', ip:'192.168.0.101'});
+  const p2 =addNode('pc',       140,520, {lbl:'PC-02（デスク）', ip:'192.168.0.102'});
+  const p3 =addNode('pc',       250,520, {lbl:'PC-03（ノート）', ip:'192.168.0.103'});
+  const p4 =addNode('pc',       360,520, {lbl:'PC-04（ノート）', ip:'192.168.0.104'});
+  const mfp=addNode('mfp',      470,520, {lbl:'複合機',          ip:'192.168.0.200'});
+  // ── SaaS（インターネット右横）──
+  const m365=addNode('saas',    410, 30, {lbl:'Microsoft365'});
+  const sl  =addNode('saas',    540, 30, {lbl:'Slack'});
+  const kt  =addNode('saas',    670, 30, {lbl:'kintone'});
+  // ── 接続 ──
+  addEdge(i.id,  r.id,   'internet');
+  addEdge(r.id,  utm.id, 'lan');
+  addEdge(utm.id,sw.id,  'lan', {bw:'1Gbps'});
+  addEdge(sw.id, p1.id,  'lan');
+  addEdge(sw.id, p2.id,  'lan');
+  addEdge(sw.id, p3.id,  'lan');
+  addEdge(sw.id, p4.id,  'lan');
+  addEdge(sw.id, mfp.id, 'lan');
+  addEdge(i.id,  m365.id,'internet');
+  addEdge(i.id,  sl.id,  'internet');
+  addEdge(i.id,  kt.id,  'internet');
+  // DOMレンダリング完了後に全体表示（requestAnimationFrameで確実に）
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      fitAll();
+      desel();
+    });
+  });
 })();
-setMode('select');updateKeyUI();applyT();
+setMode('select');updateKeyUI();applyT();updateUndoUI();
 </script>
 </body>
 </html>
