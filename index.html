@@ -32,6 +32,19 @@ body{font-family:'Segoe UI','Hiragino Sans','Yu Gothic UI',sans-serif;background
 #bgen{width:100%;margin-top:6px;padding:6px;background:var(--ac);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:500;transition:background .15s}
 #bgen:hover{background:#2655c8}
 #bgen:disabled{background:var(--bd2);cursor:not-allowed}
+#chatbox{display:flex;flex-direction:column;height:260px;border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-top:6px;background:var(--sur)}
+#chatlog{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
+.bmsg{background:var(--acb);color:var(--tx);border-radius:8px 8px 8px 2px;padding:7px 9px;font-size:11px;line-height:1.6;max-width:90%;white-space:pre-wrap}
+.umsg{background:var(--ac);color:#fff;border-radius:8px 8px 2px 8px;padding:7px 9px;font-size:11px;line-height:1.6;max-width:90%;align-self:flex-end}
+.opts{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.opt{padding:3px 9px;border:1px solid var(--ac);border-radius:12px;font-size:10px;color:var(--ac);cursor:pointer;background:var(--sur);transition:all .1s}
+.opt:hover{background:var(--acb)}
+#chatinprow{display:flex;gap:4px;padding:6px;border-top:1px solid var(--bd);flex-shrink:0}
+#chatinp{flex:1;padding:5px 8px;border:1px solid var(--bd);border-radius:6px;font-size:11px;font-family:inherit;outline:none;background:var(--sur2);color:var(--tx)}
+#chatinp:focus{border-color:var(--ac)}
+#chatsend{padding:5px 10px;background:var(--ac);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700}
+#chatsend:disabled{background:var(--bd2);cursor:not-allowed}
+#chatreset{font-size:10px;color:var(--tx3);text-decoration:underline;cursor:pointer;text-align:right;margin-top:3px}
 #ast{font-size:10px;color:var(--tx3);margin-top:4px;min-height:14px}
 #ast.ok{color:var(--grn)}#ast.err{color:var(--red)}#ast.ld{color:var(--ac)}
 /* チャットUI */
@@ -155,12 +168,14 @@ svg#dg{overflow:visible}
 <div id="sb">
   <div class="ss">
     <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px">✦ AI自動生成</div>
-    <textarea id="aitx" placeholder="例：ルーター→UTM→スイッチ→PC×3台とDBサーバー。SaaSはSlack・Gemini・kintone。"></textarea>
+    <textarea id="aitx" placeholder="構成を自由に入力してください"></textarea>
+    <div style="font-size:10px;color:var(--tx3);margin-top:5px;margin-bottom:3px;font-weight:600">記入例（クリックで入力）</div>
     <div class="chips">
-      <span class="chip" data-p="オフィスLAN：インターネット→ルーター→UTM→スイッチ→PC×3台とプリンター">オフィス</span>
-      <span class="chip" data-p="DMZ構成：インターネット→外部ルーター→外部UTM→DMZ(Webサーバー,DNS)→内部UTM→社内LAN(PC×3台,DBサーバー)">DMZ</span>
-      <span class="chip" data-p="クラウド：インターネット→ALB→Webサーバー×2→DBサーバー。SaaS: Slack,Salesforce,Microsoft365">クラウド</span>
-      <span class="chip" data-p="拠点間VPN：本社(ルーター→UTM→スイッチ→PC×3台)と支社(ルーター→UTM→PC×2台)をVPN接続。ルーター同士をVPNで接続。SaaS: Microsoft365,Gemini">VPN</span>
+      <span class="chip" data-p="オフィスLAN：IPは192.168.1.0/24。インターネット→ルーター→UTM→スイッチ→ノートPC×3台・デスクトップPC×2台・複合機1台・プリンター1台。SaaS: Microsoft365,Slack,kintone">オフィス基本</span>
+      <span class="chip" data-p="拠点間VPN：本社(192.168.1.0/24) ルーター→UTM→L2SW→ノートPC×5台・デスクトップ×2台・複合機。支社(192.168.2.0/24) ルーター→UTM→PC×3台。ルーター間をVPN接続。SaaS: Microsoft365,Gemini,kintone">VPN拠点間</span>
+      <span class="chip" data-p="ハイブリッドクラウド：オンプレ(192.168.1.0/24) ルーター→UTM→L2SW→PC×5台・ファイルサーバー(192.168.1.10)。AzureクラウドとVPN接続。SaaS: Microsoft365,Slack,kintone,Gemini">ハイブリッド</span>
+      <span class="chip" data-p="クラウド構成：インターネット→ロードバランサー→Webサーバー×2台(192.168.10.1,192.168.10.2)→DBサーバー(192.168.20.1)・ストレージサーバー(192.168.20.2)。SaaS: AWS,Slack,Datadog,GitHub">クラウド</span>
+      <span class="chip" data-p="小規模オフィス：IPは192.168.0.0/24。インターネット→ルーター(192.168.0.1)→UTM(192.168.0.2)→HUB→ノートPC×2台・複合機1台。SaaS: Microsoft365,Zoom,Chatwork">小規模</span>
     </div>
     <button id="bgen">▶ NW構成図を作成</button>
     <div id="ast"></div>
@@ -667,13 +682,17 @@ function clearHandles(){
 }
 function doSel(type,id){
   if(selItem){
-    document.getElementById((selItem.type==='node'?'node-':'edge-')+selItem.id)?.classList.remove('sel');
-    if(selItem.type==='edge'){
-      clearHandles();
-      const ed=edges.find(e=>e.id===selItem.id);if(ed)drawEdge(ed);
+    const prevId=selItem.id;
+    const prevType=selItem.type;
+    document.getElementById((prevType==='node'?'node-':'edge-')+prevId)?.classList.remove('sel');
+    clearHandles();
+    selItem=null; // 先にnullにしてからdrawEdge（isSel=falseになる）
+    if(prevType==='edge'){
+      const ed=edges.find(e=>e.id===prevId);if(ed)drawEdge(ed);
     }
+  } else {
+    clearHandles();
   }
-  clearHandles(); // 念のため必ずクリア
   selItem={type,id};
   document.getElementById((type==='node'?'node-':'edge-')+id)?.classList.add('sel');
   if(type==='edge'){const ed=edges.find(e=>e.id===id);if(ed)drawEdge(ed);}
@@ -681,13 +700,19 @@ function doSel(type,id){
 }
 function desel(){
   if(selItem){
-    document.getElementById((selItem.type==='node'?'node-':'edge-')+selItem.id)?.classList.remove('sel');
-    if(selItem.type==='edge'){
-      const ed=edges.find(e=>e.id===selItem.id);if(ed)drawEdge(ed);
+    const prevId=selItem.id;
+    const prevType=selItem.type;
+    document.getElementById((prevType==='node'?'node-':'edge-')+prevId)?.classList.remove('sel');
+    clearHandles();
+    selItem=null; // 先にnullにしてからdrawEdgeを呼ぶ（isSel判定が正しくなる）
+    if(prevType==='edge'){
+      const ed=edges.find(e=>e.id===prevId);if(ed)drawEdge(ed);
     }
+  } else {
+    clearHandles();
+    selItem=null;
   }
-  clearHandles(); // 必ずクリア
-  selItem=null;drawProps();
+  drawProps();
 }
 cw.addEventListener('click',e=>{if(e.target===cw||e.target.id==='grid'||e.target===dg||e.target===vp)desel();});
 
@@ -752,17 +777,19 @@ function dupNode(n){
   copy.col=n.col;copy.bg=n.bg;drawNode(copy);doSel('node',copy.id);showToast('ノードを複製しました');
 }
 function dupEdge(ed){
-  // 元の線の座標を取得してフリー線として少しずらして複製
   const pts=getEdgePoints(ed);
   if(!pts){showToast('線の座標を取得できません');return;}
-  const off=80; // ずらす量
+  // 元の線の選択を先に解除して青表示を消す
+  desel();
+  const off=80;
   const copy=addEdge(null,null,ed.type,{
     bw:ed.bw,
     fx1:pts.x1+off,fy1:pts.y1+off,
     fx2:pts.x2+off,fy2:pts.y2+off
   });
+  // 複製した線を選択してプロパティパネルで編集できるようにする
   doSel('edge',copy.id);
-  showToast('線を複製しました。白丸ハンドルをノードにドラッグして接続してください');
+  showToast('複製しました。タイプを変更してからノードに接続してください');
 }
 
 function del(){
@@ -802,12 +829,12 @@ document.addEventListener('keydown',e=>{
       n.col=d.col;n.bg=d.bg;drawNode(n);doSel('node',n.id);showToast('ノードを貼り付けました');
     }else{
       const d=clipboard.data;
-      const pted=edges.find(e=>e.id===d.id)||d;
-      const pts2=getEdgePoints({...d,from:d.from,to:d.to,fx1:d.fx1,fy1:d.fy1,fx2:d.fx2,fy2:d.fy2});
+      const pts2=getEdgePoints({id:d.id,from:d.from,to:d.to,fx1:d.fx1,fy1:d.fy1,fx2:d.fx2,fy2:d.fy2,offset:d.offset||0});
       const off2=80;
       if(pts2){
+        desel();
         const copy=addEdge(null,null,d.type,{bw:d.bw,fx1:pts2.x1+off2,fy1:pts2.y1+off2,fx2:pts2.x2+off2,fy2:pts2.y2+off2});
-        doSel('edge',copy.id);showToast('線を貼り付けました。白丸ハンドルでノードに接続してください');
+        doSel('edge',copy.id);showToast('貼り付けました。タイプを変更してからノードに接続してください');
       }
     }
     return;
@@ -962,29 +989,38 @@ document.getElementById('sok').onclick=()=>{
 // ═══════════════════════════════════════
 // AI生成
 // ═══════════════════════════════════════
-document.querySelectorAll('.chip').forEach(el=>el.addEventListener('click',()=>document.getElementById('aitx').value=el.dataset.p));
+document.querySelectorAll('.chip').forEach(function(el){el.addEventListener('click',function(){document.getElementById('aitx').value=el.dataset.p;});});
 document.getElementById('bgen').onclick=genAI;
 async function genAI(){
-  const apiKey=getKey();
-  if(!apiKey){setSt('APIキーが設定されていません','err');document.getElementById('bapikey').click();return;}
-  const prompt=document.getElementById('aitx').value.trim();
+  var apiKey=getKey();
+  if(!apiKey){setSt('APIキーを設定してください','err');document.getElementById('bapikey').click();return;}
+  var prompt=document.getElementById('aitx').value.trim();
   if(!prompt){setSt('テキストを入力してください','err');return;}
   document.getElementById('bgen').disabled=true;lov.classList.add('show');setSt('AIが解析中...','ld');
-  const sys='ネットワーク構成図生成AI。JSON形式のみ返答。コードブロック不要。\n形式: {"nodes":[{"id":"n1","type":"router","lbl":"ルーター","x":500,"y":100}],"edges":[{"from":"n1","to":"n2","type":"lan","bw":"1Gbps"}]}\ntype選択肢: internet,cloud,firewall,router,switch,l2sw,l3sw,hub,ap,lb,vpn_gw,server,web,db,dns,pc,mobile,printer,mfp,storage,saas\nSaaSはtype="saas"でlblにサービス名をそのまま入れる\n接続type: lan,wifi,wan,vpn,internet\n正しい順序: インターネット→ルーター→UTM→スイッチ→PC/サーバー。UTMラベルは「UTM」。拠点間VPNはルーター同士を接続。\nレイアウト(x:80-1100,y:50-750): internet/cloud+SaaS=y60-120(SaaSはインターネット右横x=750-1100)、ルーター=y180-230、UTM=y290-340、スイッチ=y400-450、サーバー=y490-570、PC=y620-720。同階層は横に均等配置(最低120px間隔)';
+  var sys='ネットワーク構成図生成AI。JSON形式のみ返答。コードブロック不要。'
+    +'形式: {"nodes":[{"id":"n1","type":"router","lbl":"ルーター","ip":"192.168.1.1","x":500,"y":180}],"edges":[{"from":"n1","to":"n2","type":"lan","bw":"1Gbps"}]}'
+    +'type選択肢: internet,cloud,firewall,router,switch,l2sw,l3sw,hub,ap,lb,vpn_gw,server,web,db,dns,pc,mobile,printer,mfp,storage,saas'
+    +'SaaSはtype="saas"でlblにサービス名をそのまま入れる。接続type: lan,wifi,wan,vpn,internet。'
+    +'正しい順序: インターネット→ルーター→UTM→スイッチ→PC/サーバー。UTMラベルは「UTM」。拠点間VPNはルーター同士を接続。'
+    +'レイアウト(x:80-1100,y:50-750): internet/cloud+SaaS=y60-120(SaaSはインターネット右横x=750-1100)、ルーター=y180-230、UTM=y290-340、スイッチ=y400-450、サーバー=y490-570、PC=y620-720。同階層は横に均等配置(最低120px間隔)。';
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sys,messages:[{role:'user',content:prompt}]})});
-    const data=await res.json();if(data.error)throw new Error(data.error.message);
-    const text=data.content?.map(b=>b.text||'').join('');
-    let json;
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sys,messages:[{role:'user',content:prompt}]})
+    });
+    var data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    var text=data.content.map(function(b){return b.text||'';}).join('');
+    var json;
     try{json=JSON.parse(text.replace(/```[a-z]*/g,'').replace(/```/g,'').trim());}
-    catch{const m=text.match(/\{[\s\S]*\}/);if(!m)throw new Error('JSON解析失敗');json=JSON.parse(m[0]);}
+    catch(e){var m=text.match(/\{[\s\S]*\}/);if(!m)throw new Error('JSON解析失敗');json=JSON.parse(m[0]);}
     nodes.length=0;edges.length=0;NL.innerHTML='';EL.innerHTML='';nc=1;ec=1;
-    const idMap={};
-    (json.nodes||[]).forEach(nd=>{const n=addNode(nd.type||'server',nd.x||200,nd.y||200,{lbl:nd.lbl||nd.label,ip:nd.ip||''});idMap[nd.id]=n.id;});
-    (json.edges||[]).forEach(ed=>{const f=idMap[ed.from],t=idMap[ed.to];if(f&&t)addEdge(f,t,ed.type,{bw:ed.bw||ed.bandwidth||''});});
-    setTimeout(fitAll,50);desel();setSt('生成完了: '+nodes.length+'ノード・'+edges.length+'接続','ok');
+    var idMap={};
+    (json.nodes||[]).forEach(function(nd){var n=addNode(nd.type||'server',nd.x||200,nd.y||200,{lbl:nd.lbl||nd.label||'',ip:nd.ip||''});idMap[nd.id]=n.id;});
+    (json.edges||[]).forEach(function(ed){var f=idMap[ed.from],t=idMap[ed.to];if(f&&t)addEdge(f,t,ed.type,{bw:ed.bw||ed.bandwidth||'',});});
+    setTimeout(fitAll,50);desel();
+    setSt('完了: '+nodes.length+'ノード・'+edges.length+'接続','ok');
   }catch(err){console.error(err);setSt('エラー: '+err.message,'err');}
   finally{document.getElementById('bgen').disabled=false;lov.classList.remove('show');}
 }
@@ -1001,23 +1037,29 @@ function showToast(msg){
 // サンプル
 // ═══════════════════════════════════════
 (function(){
-  const i =addNode('internet',500,40, {lbl:'インターネット'});
-  const r =addNode('router',  500,180,{lbl:'コアルーター',ip:'210.0.0.1'});
-  const fw=addNode('firewall',500,310,{lbl:'UTM',ip:'192.168.0.1'});
-  const s1=addNode('switch',  270,440,{lbl:'スイッチ(DMZ)'});
-  const s2=addNode('switch',  730,440,{lbl:'スイッチ(LAN)'});
-  const w =addNode('web',     140,580,{lbl:'Webサーバー',ip:'10.0.1.10'});
-  const db=addNode('db',      360,580,{lbl:'DBサーバー', ip:'10.0.1.20'});
-  const p1=addNode('pc',      640,580,{lbl:'PC-01',ip:'192.168.1.101'});
-  const p2=addNode('pc',      800,580,{lbl:'PC-02',ip:'192.168.1.102'});
-  const sc=addNode('saas',    750, 40,{lbl:'Slack'});
-  const gm=addNode('saas',    880, 40,{lbl:'Gemini'});
-  const kt=addNode('saas',   1010, 40,{lbl:'kintone'});
-  addEdge(i.id,r.id,'internet');addEdge(r.id,fw.id,'lan');
-  addEdge(fw.id,s1.id,'lan',{bw:'1Gbps'});addEdge(fw.id,s2.id,'lan',{bw:'1Gbps'});
-  addEdge(s1.id,w.id,'lan');addEdge(s1.id,db.id,'lan');
-  addEdge(s2.id,p1.id,'wifi');addEdge(s2.id,p2.id,'wifi');
-  addEdge(i.id,sc.id,'internet');addEdge(i.id,gm.id,'internet');addEdge(i.id,kt.id,'internet');
+  const i  =addNode('internet', 440, 40,{lbl:'インターネット'});
+  const r  =addNode('router',   440,180,{lbl:'ルーター',      ip:'210.1.1.1'});
+  const utm=addNode('firewall', 440,310,{lbl:'UTM',           ip:'192.168.0.1'});
+  const sw =addNode('l2sw',     440,440,{lbl:'L2スイッチ',    ip:'192.168.0.2'});
+  const p1 =addNode('pc',       160,590,{lbl:'デスクトップPC-01', ip:'192.168.0.101'});
+  const p2 =addNode('pc',       300,590,{lbl:'デスクトップPC-02', ip:'192.168.0.102'});
+  const p3 =addNode('pc',       440,590,{lbl:'ノートPC-01',   ip:'192.168.0.103'});
+  const p4 =addNode('pc',       580,590,{lbl:'ノートPC-02',   ip:'192.168.0.104'});
+  const mfp=addNode('mfp',      720,590,{lbl:'複合機',        ip:'192.168.0.200'});
+  const m365=addNode('saas',    680, 40,{lbl:'Microsoft365'});
+  const sl =addNode('saas',     820, 40,{lbl:'Slack'});
+  const kt =addNode('saas',     960, 40,{lbl:'kintone'});
+  addEdge(i.id, r.id,  'internet');
+  addEdge(r.id, utm.id,'lan');
+  addEdge(utm.id,sw.id,'lan',{bw:'1Gbps'});
+  addEdge(sw.id, p1.id,'lan');
+  addEdge(sw.id, p2.id,'lan');
+  addEdge(sw.id, p3.id,'wifi');
+  addEdge(sw.id, p4.id,'wifi');
+  addEdge(sw.id, mfp.id,'lan');
+  addEdge(i.id, m365.id,'internet');
+  addEdge(i.id, sl.id,  'internet');
+  addEdge(i.id, kt.id,  'internet');
   setTimeout(fitAll,80);desel();
 })();
 setMode('select');updateKeyUI();applyT();
