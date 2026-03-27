@@ -556,16 +556,7 @@ function drawNode(n){
     txtel.setAttribute('fill',n.col||'#1a1d23');
     txtel.setAttribute('pointer-events','none');
     txtel.textContent=n.lbl;
-    // 選択時の枠線
-    const selbdr=document.createElementNS(NS,'rect');
-    selbdr.setAttribute('x',-4);selbdr.setAttribute('y',-4);
-    selbdr.setAttribute('width',300);selbdr.setAttribute('height',parseInt(fs)+12);
-    selbdr.setAttribute('fill','none');selbdr.setAttribute('stroke','#3b6fe8');
-    selbdr.setAttribute('stroke-width','1.5');selbdr.setAttribute('stroke-dasharray','4 3');
-    selbdr.setAttribute('rx','3');selbdr.setAttribute('pointer-events','none');
-    selbdr.style.display='none';selbdr.classList.add('txt-bdr');
-
-    g.appendChild(hit);g.appendChild(txtel);g.appendChild(selbdr);
+    g.appendChild(hit);g.appendChild(txtel);
     NL.appendChild(g);
 
     // ドラッグ移動
@@ -812,7 +803,6 @@ function doSel(type,id){
     const prevType=selItem.type;
     const prevEl=document.getElementById((prevType==='node'?'node-':'edge-')+prevId);
     prevEl?.classList.remove('sel');
-    if(prevType==='node'){const bdr=prevEl?.querySelector('.txt-bdr');if(bdr)bdr.style.display='none';}
     clearHandles();
     selItem=null; // 先にnullにしてからdrawEdge（isSel=falseになる）
     if(prevType==='edge'){
@@ -824,8 +814,6 @@ function doSel(type,id){
   selItem={type,id};
   const newEl=document.getElementById((type==='node'?'node-':'edge-')+id);
   newEl?.classList.add('sel');
-  // テキストノードの枠線表示
-  if(type==='node'){const bdr=newEl?.querySelector('.txt-bdr');if(bdr)bdr.style.display='block';}
   if(type==='edge'){const ed=edges.find(e=>e.id===id);if(ed)drawEdge(ed);}
   drawProps();
 }
