@@ -16,14 +16,14 @@ body{font-family:'Segoe UI','Hiragino Sans','Yu Gothic UI',sans-serif;background
 .btn.red:hover{background:#fff0f0;color:var(--red);border-color:#ffb3b3}
 #zdsp{font-size:12px;color:var(--tx2);min-width:36px;text-align:center}
 #wrap{display:flex;flex:1;overflow:hidden;flex-direction:column}
-#sb{width:192px;flex-shrink:0;background:var(--sur);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow-y:auto}
+#sb{width:280px;flex-shrink:0;background:var(--sur);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow-y:auto}
 .ss{padding:10px;border-bottom:1px solid var(--bd)}
 .sl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
-.ng{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.ng{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
 .ni{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 3px;border:1px solid var(--bd);border-radius:8px;cursor:grab;background:var(--sur2);user-select:none;font-size:10px;color:var(--tx2);text-align:center;line-height:1.3;transition:all .15s}
 .ni:hover{border-color:var(--ac);color:var(--ac);background:var(--acb)}
 .ico{font-size:18px;line-height:1;pointer-events:none}
-#aitx{width:100%;height:120px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--sur2);color:var(--tx);font-size:12px;font-family:inherit;resize:vertical;outline:none;line-height:1.6}
+#aitx{width:100%;height:160px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--sur2);color:var(--tx);font-size:12px;font-family:inherit;resize:vertical;outline:none;line-height:1.6}
 #aitx:focus{border-color:var(--ac)}
 #aitx::placeholder{color:var(--tx3);font-size:10px}
 .chips{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
@@ -418,30 +418,32 @@ function snapState(){
 function pushHistory(){
   undoStack.push(snapState());
   if(undoStack.length>MAX_HIST) undoStack.shift();
-  redoStack.length=0; // 新操作でredoはクリア
+  redoStack.length=0;
   updateUndoUI();
 }
 
 function restoreState(snap){
+  selItem=null;
   nodes.length=0; edges.length=0;
   NL.innerHTML=''; EL.innerHTML='';
   clearHandles();
   snap.nodes.forEach(n=>{nodes.push({...n});drawNode(nodes[nodes.length-1]);});
   snap.edges.forEach(e=>{edges.push({...e});drawEdge(edges[edges.length-1]);});
   nc=snap.nc; ec=snap.ec;
-  desel();
+  drawProps();
 }
 
 function undo(){
-  if(!undoStack.length) return;
+  if(!undoStack.length){showToast('これ以上戻れません');return;}
   redoStack.push(snapState());
-  restoreState(undoStack.pop());
+  const snap=undoStack.pop();
+  restoreState(snap);
   updateUndoUI();
   showToast('元に戻しました');
 }
 
 function redo(){
-  if(!redoStack.length) return;
+  if(!redoStack.length){showToast('これ以上進めません');return;}
   undoStack.push(snapState());
   restoreState(redoStack.pop());
   updateUndoUI();
@@ -450,8 +452,16 @@ function redo(){
 
 function updateUndoUI(){
   const bu=document.getElementById('bundo'),br=document.getElementById('bredo');
-  if(bu){bu.disabled=!undoStack.length;bu.style.opacity=undoStack.length?'1':'0.4';}
-  if(br){br.disabled=!redoStack.length;br.style.opacity=redoStack.length?'1':'0.4';}
+  if(bu){
+    bu.style.opacity=undoStack.length?'1':'0.4';
+    bu.style.cursor=undoStack.length?'pointer':'not-allowed';
+    bu.disabled=false; // disabledを使わない（onclickが発火しなくなるため）
+  }
+  if(br){
+    br.style.opacity=redoStack.length?'1':'0.4';
+    br.style.cursor=redoStack.length?'pointer':'not-allowed';
+    br.disabled=false;
+  }
 }
 
 const NS='http://www.w3.org/2000/svg';
@@ -547,12 +557,14 @@ function drawNode(n){
     if(e.button!==0||mode==='connect')return;e.stopPropagation();
     const r=cw.getBoundingClientRect();
     const ox=(e.clientX-r.left-panX)/zoom-n.x,oy=(e.clientY-r.top-panY)/zoom-n.y;
+    let nodeMoved=false;
     const mv=e2=>{
+      if(!nodeMoved){pushHistory();nodeMoved=true;} // 最初の移動時だけ履歴保存
       n.x=Math.round(((e2.clientX-r.left-panX)/zoom-ox)/10)*10;
       n.y=Math.round(((e2.clientY-r.top-panY)/zoom-oy)/10)*10;
       g.setAttribute('transform',`translate(${n.x},${n.y})`);reEdges();
     };
-    const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);pushHistory();};
+    const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);};
     document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
     doSel('node',n.id);
   });
@@ -640,7 +652,7 @@ function drawEdge(ed){
       const cx=(e2.clientX-r.left-panX)/zoom,cy=(e2.clientY-r.top-panY)/zoom;
       const dx=cx-startX,dy=cy-startY;
       if(Math.abs(dx)<2&&Math.abs(dy)<2)return;
-      moved=true;
+      if(!moved){pushHistory();moved=true;} // 最初の移動時だけ履歴保存
       // 両端をフリー座標化して移動
       ed.fx1=(origFx1!=null?origFx1:x1)+dx;
       ed.fy1=(origFy1!=null?origFy1:y1)+dy;
@@ -654,7 +666,6 @@ function drawEdge(ed){
     const up=()=>{
       document.removeEventListener('mousemove',mv);
       document.removeEventListener('mouseup',up);
-      if(moved) pushHistory();
     };
     document.addEventListener('mousemove',mv);
     document.addEventListener('mouseup',up);
