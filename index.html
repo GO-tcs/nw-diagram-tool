@@ -1058,6 +1058,19 @@ function saveImg(fmt){
   });
   nodes.forEach(n=>{
     const def=ND[n.type]||ND.server;const nx=tx(n.x),ny=ty(n.y);
+
+    // テキストノードは専用描画
+    if(def.sh==='text'){
+      const fs=parseInt(n.note||'13');
+      ctx.font=fs+'px sans-serif';
+      ctx.fillStyle=n.col||'#1a1d23';
+      ctx.textAlign='left';ctx.textBaseline='top';
+      // 改行対応
+      const lines=n.lbl.split('\n');
+      lines.forEach((line,i)=>{ctx.fillText(line,nx,ny+i*(fs+4));});
+      return;
+    }
+
     ctx.fillStyle=n.bg;ctx.strokeStyle=n.col;ctx.lineWidth=1.5;ctx.beginPath();
     if(def.sh==='cir'){ctx.arc(nx+40,ny+32,32,0,Math.PI*2);}
     else if(def.sh==='dia'){ctx.moveTo(nx+40,ny+2);ctx.lineTo(nx+76,ny+32);ctx.lineTo(nx+40,ny+62);ctx.lineTo(nx+4,ny+32);ctx.closePath();}
